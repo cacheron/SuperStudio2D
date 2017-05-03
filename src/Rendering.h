@@ -32,13 +32,14 @@ public:
 class Animation {
 public:
 	bool isFinished, repeat;
-	void SetAnimation(vector<Frame*>& frameVector);
 	Animation();
-	Animation(vector<Frame*>& frameVector);
+	Animation(vector<Frame*>& frameVector, bool isFinished, bool repeat);
+	void SetAnimation(vector<Frame*>& newAnimation);
 	void DrawAnimation(float deltaTime, int xPos, int yPos, bool repeat);
 private:
 	int currentFrame;
 	int frameCount;
+	float elapsedTime;
 	vector<Frame*> animation;
 	void ReserveFrames();
 };
