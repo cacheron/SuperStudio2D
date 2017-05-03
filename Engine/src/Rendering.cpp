@@ -45,6 +45,9 @@ void Background::AddToTileSet(Tile* tile) {
 	tileSet.push_back(tile);
 }
 Tile* Background::GetTile(int x, int y) {
+	if (x >= width || y >= height) {
+		return tileSet[0];
+	}
 	return tileSet.at(level[x][y]);
 }
 void Background::SetLevel(vector< vector<int>>& newLevel) {
@@ -53,7 +56,7 @@ void Background::SetLevel(vector< vector<int>>& newLevel) {
 void Background::DrawBackground(int xPix, int yPix, int xTile, int yTile, int w, int h) {
 	for (int xIndex = xTile; xIndex < xTile + w; ++xIndex) { // adjust width + height relative
 		for (int yIndex = yTile; yIndex < yTile + h; ++yIndex) { // to the cam tile position
-			Tile tile = *GetTile(xIndex, yIndex);
+			Tile tile = *GetTile(yIndex, xIndex);
 			int xPos = (xIndex * tile.width) - xPix; // adjust drawing relative to origin
 			int yPos = (yIndex * tile.height) - yPix;
 			glDrawSprite(tile.img, xPos, yPos, tile.height, tile.width);

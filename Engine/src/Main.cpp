@@ -78,26 +78,31 @@ int main(void)
 	Uint64 NOW = SDL_GetTicks();
 	Uint64 LAST = 0;
 	Uint64 elapsedTime = 0;
-	int FPS = 60;
 	float deltaTime, seconds = 0;
-	
-	// Test of background rendering
-	int tex_carpet_w = 0; int tex_carpet_h = 0;
-	int tex_carpet = glTexImageTGAFile("img/tex_carpet.tga", &tex_carpet_w, &tex_carpet_h);
-	Tile* carpet = new Tile(0.0f, 0.0f, tex_carpet_w, tex_carpet_h, tex_carpet, false);
 
-	int level[12][12] = {	{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 },
-							{ 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0 }								
+	// Test of background rendering
+	int tex_w = 0; int tex_h = 0;
+	int tex_broke = glTexImageTGAFile("img/tex_broke.tga", &tex_w, &tex_h);
+	Tile* broke = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_broke, false);
+
+	int tex_grass = glTexImageTGAFile("img/tex_grass.tga", &tex_w, &tex_h);
+	Tile* grass = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_grass, false);
+
+	int tex_carpet = glTexImageTGAFile("img/tex_carpet.tga", &tex_w, &tex_h);
+	Tile* carpet = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_carpet, false);
+
+	int level[12][12] = {	{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 }
 						};
 	// convert level to 2d vector
 	vector<vector<int>> vectorLevel;
@@ -107,6 +112,8 @@ int main(void)
 
 	Background* bg = new Background(12, 12);
 	bg->SetLevel(vectorLevel);
+	bg->AddToTileSet(broke);
+	bg->AddToTileSet(grass);
 	bg->AddToTileSet(carpet);
 
     // The game loop.
@@ -154,7 +161,7 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
 		// Game drawing goes here.
-		bg->DrawBackground(0, 0, 0, 0, 12, 12);
+		bg->DrawBackground(0, 0, 0, 0, 16, 16);
         glDrawSprite(spriteTex, spritePos[0], spritePos[1], spriteSize[0], spriteSize[1]);
 
         // Present the most recent frame.

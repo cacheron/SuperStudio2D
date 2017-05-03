@@ -31,12 +31,16 @@ public:
 /** An animation is a collection of frames */
 class Animation {
 public:
+	bool isFinished, repeat;
 	void SetAnimation(vector<Frame*>& frameVector);
 	Animation();
+	Animation(vector<Frame*>& frameVector);
+	void DrawAnimation(float deltaTime, int xPos, int yPos, bool repeat);
 private:
 	int currentFrame;
-	vector<Frame*> frames;
-
+	int frameCount;
+	vector<Frame*> animation;
+	void ReserveFrames();
 };
 
 /** A background is a collection of Tiles, can draw them from a start and end index */
