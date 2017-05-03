@@ -1,7 +1,15 @@
 #######################################################################
 
-                C++ Engine developed for 2D game design
-                           By Chaz Acheronti and Robert Steiminger.
+  ____                        ____  _             _ _      ____     _ 
+ / ___| _   _ _ __   ___ _ __/ ___|| |_ _   _  __| (_) ___|___ \ __| |
+ \___ \| | | | '_ \ / _ \ '__\___ \| __| | | |/ _` | |/ _ \ __) / _` |
+  ___) | |_| | |_) |  __/ |   ___) | |_| |_| | (_| | | (_) / __/ (_| |
+ |____/ \__,_| .__/ \___|_|  |____/ \__|\__,_|\__,_|_|\___/_____\__,_|
+             |_|                                                                                                         
+ 
+              C++ Engine developed for 2D game design
+              by Chaz Acheronti and Robert Steiminger
+
 #######################################################################
     The goal of this engine is to easily develop 2D games 
     that rely on top-down perspectives and top-down rendering.
@@ -27,8 +35,7 @@ Current Design Needs:
     ○ Create the bgTile class
         ○ A bgTile is a tile with a static image and is/is not collidable
         
-    Create the GameObject class
+    ○ Create the GameObject class
         ○ A gameobject inherits from tile, but has the following properties:
+            ○ an animation
             ○ 
-        
-
