@@ -16,9 +16,6 @@
 
 Current Design Needs:
 Part 3: Animations and Rendering
-○ Create the animation class
-    ○ Needs animation functions to draw based on delta time
-    ○ Needs constructor
 ○ There isnt enough time to finish art for tomorrow. Here is what we need to do:
     ○ Add back in the space person animations just because
     ○ Add in the new enemy look
