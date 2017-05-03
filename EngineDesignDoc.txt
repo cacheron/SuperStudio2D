@@ -16,7 +16,6 @@
 
 Current Design Needs:
 // Part 1
-○ Start the Engine from scratch off the template.
 ○ Reimpliment delta time with SDL get ticks.
 ○ Move a character using delta time to test frame lag.
 ○ Remove input code.

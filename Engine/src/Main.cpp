@@ -16,7 +16,7 @@ unsigned char kbPrevState[SDL_NUM_SCANCODES] = {0};
 const unsigned char* kbState = NULL;
 
 // Position of the sprite.
-int spritePos[2] = {10, 10};
+float spritePos[2] = {10, 10};
 
 // Texture for the sprite.
 GLuint spriteTex;
@@ -72,11 +72,28 @@ int main(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Game initialization goes here.
-    spriteTex = glTexImageTGAFile("magikarp.tga", &spriteSize[0], &spriteSize[1]);
+    spriteTex = glTexImageTGAFile("img/spr_player.tga", &spriteSize[0], &spriteSize[1]);
+	// Calculation of deltaTime
+	Uint64 NOW = SDL_GetTicks();
+	Uint64 LAST = 0;
+	Uint64 elapsedTime = 0;
+	int FPS = 60;
+	float deltaTime, seconds = 0;
+	
 
     // The game loop.
 	kbState = SDL_GetKeyboardState(NULL);
 	while (!shouldExit) {
+		NOW = SDL_GetTicks();
+		deltaTime = (NOW - LAST) / 1000.0;
+		LAST = NOW;
+		seconds += deltaTime;
+		if (static_cast<int>(seconds) == 1) {
+			elapsedTime += 1; seconds = 0.0;
+			printf("%d\n", elapsedTime);
+		}
+		
+		if (elapsedTime )
         assert(glGetError() == GL_NO_ERROR);
         memcpy(kbPrevState, kbState, sizeof(kbPrevState));
         
@@ -93,7 +110,17 @@ int main(void)
         if (kbState[SDL_SCANCODE_ESCAPE]) {
             shouldExit = 1;
         }
-
+		if (kbState[SDL_SCANCODE_UP]) {
+			spritePos[1] -= 400.0 * deltaTime;
+		} else if (kbState[SDL_SCANCODE_DOWN]) {
+			spritePos[1] += 400.0 * deltaTime;
+		}
+		if (kbState[SDL_SCANCODE_LEFT]) {
+			spritePos[0] -= 400.0 * deltaTime;
+		}
+		else if (kbState[SDL_SCANCODE_RIGHT]) {
+			spritePos[0] += 400.0 * deltaTime;
+		}
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
