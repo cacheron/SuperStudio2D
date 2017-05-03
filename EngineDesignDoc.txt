@@ -1,0 +1,34 @@
+#######################################################################
+
+                C++ Engine developed for 2D game design
+                           By Chaz Acheronti and Robert Steiminger.
+#######################################################################
+    The goal of this engine is to easily develop 2D games 
+    that rely on top-down perspectives and top-down rendering.
+
+Current Design Needs:
+// Part 1
+○ Start the Engine from scratch off the template.
+○ Reimpliment delta time with SDL get ticks.
+○ Move a character using delta time to test frame lag.
+○ Remove input code.
+
+// Part 2
+○ Create Inputs.h.
+    ○ Create several classes for handling different inputs. For now, we only need keyboard.
+    ○ For the keyboard class, have it take the keyboard state as input and return a 2D array
+○ Create Physics.h
+    ○ Before we get complicated with physics, I only want to reimplement the AABB check
+    ○ Consider making JUST ONE function to determine collisions
+    ○ Physics should NOT rely on rendering classes in anyway!! It shouldnt include any other headers
+○ Create Rendering.h
+    ○ Create the base level of all objects: Tile class
+    ○ It should have an x,y, width, height
+    ○ Create the bgTile class
+        ○ A bgTile is a tile with a static image and is/is not collidable
+        
+    Create the GameObject class
+        ○ A gameobject inherits from tile, but has the following properties:
+            ○ 
+        
+
