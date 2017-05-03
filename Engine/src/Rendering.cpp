@@ -14,6 +14,24 @@ Tile::Tile(float xPos, float yPos, int w, int h, int image, bool collision) {
 	isCollidable = collision;
 }
 
+// Frame class implementation
+Frame::Frame() {
+	x = 0.0; y = 0.0;
+	width = 0; height = 0;
+	isCollidable = false;
+	duration = 0.0;
+}
+Frame::Frame(float xPos, float yPos, int w, int h, int image, bool collision, float dur) {
+	x = xPos; x = yPos; img = image;
+	width = w;
+	height = h;
+	isCollidable = collision;
+	duration = dur;
+}
+
+// Animation class implementation
+
+
 // Background class implementation
 Background::Background() {
 	width = 0; height = 0;

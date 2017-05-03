@@ -21,8 +21,25 @@ public:
 };
 
 /** A Frame class is a Tile with a duration */
-/** An animation is a collectio of frames */
-/** A background is a collection of AABBTiles, can draw them from a start and end index */
+class Frame : public Tile {
+public:
+	float duration;
+	Frame();
+	Frame(float xPos, float yPos, int w, int h, int img, bool collision, float dur);
+};
+
+/** An animation is a collection of frames */
+class Animation {
+public:
+	void SetAnimation(vector<Frame*>& frameVector);
+	Animation();
+private:
+	int currentFrame;
+	vector<Frame*> frames;
+
+};
+
+/** A background is a collection of Tiles, can draw them from a start and end index */
 class Background {
 public:
 	int height, width; // level size

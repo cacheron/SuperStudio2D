@@ -15,4 +15,34 @@
     that rely on top-down perspectives and top-down rendering.
 
 Current Design Needs:
+Part 3: Animations and Rendering
+○ Create the animation class
+    ○ Needs animation functions to draw based on delta time
+    ○ Needs constructor
+○ There isnt enough time to finish art for tomorrow. Here is what we need to do:
+    ○ Add back in the space person animations just because
+    ○ Add in the new enemy look
+    ○ Create a plane outer wall
+    ○ Create a box
+○ Create the camera class
+    ○ Not much has to change here, this class worked pretty well
+    ○ Bring back the functionallities of the class just like before, with adding to the vector "queue"
+○ Use the walls and boxes to makea  level, and verify that the camera works as intended with WASD input
 
+Part 4: Reimplementing physics
+○ Bring back the physics class. Consier making it a new header file and move the old physics.h into AABB.h instead
+○ Keep physics the same except for one key difference
+    ○ When calculating the background collisions, check the index position first
+    ○ Then choose the immediate adjacent boxes and ask if they are collidable
+    ○ Since classes do not have AABBs, the physics object will instead have two temporary boxes with values
+        That are changed when needed, and then compared. No AABB mess.
+    ○ If they are collidable, do an AABB test by using the function rather than making an AABB?
+○ Not enough time, use old projectile code but only for the enemy this time
+
+Part 5: AI Decision Making
+○ Since our AI is a flight attendant, we just need some basic functionallity
+○ Its first behavior is to walk back and forth between two points
+    ○ If something walks into its range of vision, then trigger the follow behavior.
+○ The second behavior is to follow the player to get within range (our old follow method)
+○ The third behavior is to throw a peanut at the player. It can only do this when it has already found the player
+    ○ Must be a random decision between follow and throw. Make the decision every X amount of seconds
