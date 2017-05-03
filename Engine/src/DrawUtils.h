@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GL/glew.h>
+
 #ifndef DRAWUTILS_H
 #define DRAWUTILS_H
 

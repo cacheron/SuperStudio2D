@@ -71,22 +71,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>.\src;.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
     <LibraryPath>.\external\SDL2-2.0.5\lib\x86;.\external\glew-2.0.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>.\src;.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
     <LibraryPath>.\external\SDL2-2.0.5\lib\x86;.\external\glew-2.0.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>.\src;.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
     <LibraryPath>.\external\SDL2-2.0.5\lib\x86;.\external\glew-2.0.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>.\src;.\external\SDL2-2.0.5\include;.\external\glew-2.0.0\include;$(IncludePath)</IncludePath>
     <LibraryPath>.\external\SDL2-2.0.5\lib\x86;.\external\glew-2.0.0\lib\Release\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -156,9 +156,12 @@
   <ItemGroup>
     <ClCompile Include="src\DrawUtils.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Rendering.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\DrawUtils.h" />
+    <ClInclude Include="src\Physics.h" />
+    <ClInclude Include="src\Rendering.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
