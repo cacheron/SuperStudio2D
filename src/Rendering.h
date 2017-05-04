@@ -16,7 +16,7 @@ public:
 	float x, y;
 	int width, height, img;
 	bool isCollidable;
-	//AABB BoxCollider;
+	AABB BoxCollider;
 	Tile();
 	Tile(float xPos, float yPos, int w, int h, int img, bool collision); // Create a tile with x and y pos, int width and height
 };
@@ -54,7 +54,7 @@ public:
 	void AddToTileSet(Tile* tile);
 	Tile* GetTile(int x, int y);
 	void SetLevel(vector< vector<int> >& newLevel);
-	void DrawBackground(int xPix, int yPix, int xTile, int yTile, int w, int h);
+	void Draw(int xPix, int yPix, int xTile, int yTile, int w, int h);
 private:
 	vector<Tile*> tileSet;
 	vector< vector<int> > level;
@@ -73,11 +73,13 @@ public:
 	Camera(int xPos, int yPos, int w, int h, int spd);
 	void Draw(float deltaTime);
 	void Move(float deltaTime, int direction[2]);
-	void AddToCamera(Background& bg);
+	void AddBackground(Background& level); // Adds the background to the camera
+	void AddDecoration(Background& level); // Adds the decorations to the camera
 private:
 	int xTile, yTile;
 	Background* bg;
-	//AABB BoxCollider;
+	Background* decoration;
+	AABB BoxCollider;
 	void GetTileIndex();
 };
 #endif

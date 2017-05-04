@@ -15,11 +15,6 @@
     that rely on top-down perspectives and top-down rendering.
 
 Current Design Needs:
-Part 3: Animations and Rendering
-○ There isnt enough time to finish art for tomorrow. Here is what we need to do:
-    ○ Add back in the space person animations just because (??? dont feel like it. just add a left right sprite)
-○ Use the walls and boxes to make a  level, and verify that the camera works as intended with WASD input
-
 Part 4: Reimplementing physics
 ○ Bring back the physics class. Consier making it a new header file and move the old physics.h into AABB.h instead
 ○ Keep physics the same except for one key difference

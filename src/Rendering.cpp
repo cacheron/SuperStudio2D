@@ -86,7 +86,7 @@ Tile* Background::GetTile(int x, int y) {
 void Background::SetLevel(vector< vector<int>>& newLevel) {
 	level = newLevel;
 }
-void Background::DrawBackground(int xPix, int yPix, int xTile, int yTile, int w, int h) {
+void Background::Draw(int xPix, int yPix, int xTile, int yTile, int w, int h) {
 	for (int xIndex = xTile; xIndex < xTile + w; ++xIndex) { // adjust width + height relative
 		for (int yIndex = yTile; yIndex < yTile + h; ++yIndex) { // to the cam tile position
 			Tile tile = *GetTile(yIndex, xIndex);
@@ -104,24 +104,33 @@ void Background::ReserveLevel() {
 Camera::Camera() {
 	x = 0; y = 0; width = 0; height = 0; speed = 0;
 	xTile = 0; yTile = 0;
+	BoxCollider.x = 0; BoxCollider.y = 0;
+	BoxCollider.width = 0; BoxCollider.height = 0;
 }
 Camera::Camera(int xPos, int yPos, int w, int h, int spd) {
 	x = xPos; y = yPos; width = w; height = h; speed = spd;
+	BoxCollider.x = x; BoxCollider.y = y;
+	BoxCollider.width = width; BoxCollider.height = height;
 	GetTileIndex();
 }
 void Camera::Draw(float deltaTime) {
 	// Draw the background
-	bg->DrawBackground(x, y, xTile, yTile, width, height);
-	// DrawEntities
-	// Draw the sprites
+	bg->Draw(x, y, xTile, yTile, width, height);
+	// Draw Entities on the screen
+	decoration->Draw(x, y, xTile, yTile, width, height);
+	// Draw Sprites on the screen
 }
 void Camera::Move(float deltaTime, int direction[2]) {
 	x += direction[0] * deltaTime * speed;
 	y += direction[1] * deltaTime * speed;
-	GetTileIndex();
+	BoxCollider.Move(x, y); // update the box collider
+	GetTileIndex(); // update tile index
 }
-void Camera::AddToCamera(Background& level) {
+void Camera::AddBackground(Background& level) {
 	bg = &level;
+}
+void Camera::AddDecoration(Background& level) {
+	decoration = &level;
 }
 void Camera::GetTileIndex() {
 	xTile = x / 64;

@@ -73,7 +73,7 @@ int main(void)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Game initialization goes here.
-    spriteTex = glTexImageTGAFile("img/spr_player.tga", &spriteSize[0], &spriteSize[1]);
+    spriteTex = glTexImageTGAFile("img/spr_player_front.tga", &spriteSize[0], &spriteSize[1]);
 	
 	// Calculation of deltaTime
 	Uint64 NOW = SDL_GetTicks();
@@ -81,7 +81,7 @@ int main(void)
 	Uint64 elapsedTime = 0;
 	float deltaTime, seconds = 0;
 
-	// Test of background rendering
+	// Create the background
 	int tex_w = 0; int tex_h = 0;
 	int tex_broke = glTexImageTGAFile("img/tex_broke.tga", &tex_w, &tex_h);
 	Tile* broke = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_broke, false);
@@ -110,16 +110,56 @@ int main(void)
 	for (int i = 0; i < 40; ++i) {
 		vectorLevel.push_back(vector<int>(begin(level[i]), end(level[i])));
 	}
-
 	Background* bg = new Background(12, 12);
 	bg->SetLevel(vectorLevel);
 	bg->AddToTileSet(broke);
 	bg->AddToTileSet(grass);
 	bg->AddToTileSet(carpet);
 
-	Camera* camera = new Camera(0, 0, 14, 11, 300);
-	camera->AddToCamera(*bg);
+	// Create the decoration background
+	int spr_transparent = glTexImageTGAFile("img/spr_transparent.tga", &tex_w, &tex_h);
+	Tile* transparent = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_transparent, false);
 
+	int spr_window_left = glTexImageTGAFile("img/spr_window_left.tga", &tex_w, &tex_h);
+	Tile* window_left = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_window_left, true);
+
+	int spr_window_right = glTexImageTGAFile("img/spr_window_right.tga", &tex_w, &tex_h);
+	Tile* window_right = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_window_right, true);
+
+	int spr_chair = glTexImageTGAFile("img/spr_chair.tga", &tex_w, &tex_h);
+	Tile* chair = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_chair, true);
+
+	int spr_case = glTexImageTGAFile("img/spr_case.tga", &tex_w, &tex_h);
+	Tile* red_case = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_case, true);
+
+	int decorations[12][12] = { { 0, 1, 0, 0, 0, 0, 0, 4, 4, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 },
+								{ 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 },
+								{ 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 },
+								{ 0, 1, 0, 4, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 }
+	};
+	vector<vector<int>> vectordeco;
+	for (int i = 0; i < 40; ++i) {
+		vectordeco.push_back(vector<int>(begin(decorations[i]), end(decorations[i])));
+	}
+	Background* decoration = new Background(12, 12);
+	decoration->SetLevel(vectordeco);
+	decoration->AddToTileSet(transparent);
+	decoration->AddToTileSet(window_left);
+	decoration->AddToTileSet(window_right);
+	decoration->AddToTileSet(chair);
+	decoration->AddToTileSet(red_case);
+
+	Camera* camera = new Camera(0, 0, 14, 11, 300);
+	camera->AddBackground(*bg);
+	camera->AddDecoration(*decoration);
     // The game loop.
 	kbState = SDL_GetKeyboardState(NULL);
 	while (!shouldExit) {
