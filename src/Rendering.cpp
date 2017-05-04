@@ -77,7 +77,8 @@ void Background::AddToTileSet(Tile* tile) {
 	tileSet.push_back(tile);
 }
 Tile* Background::GetTile(int x, int y) {
-	if (x >= width || y >= height) {
+	if ( (x >= width || x <= -1) || 
+		 (y >= height || y <= -1) ) {
 		return tileSet[0];
 	}
 	return tileSet.at(level[x][y]);
@@ -97,4 +98,32 @@ void Background::DrawBackground(int xPix, int yPix, int xTile, int yTile, int w,
 }
 void Background::ReserveLevel() {
 	level.resize(width, vector<int>(height, 0));
+}
+
+// Camera class implementation
+Camera::Camera() {
+	x = 0; y = 0; width = 0; height = 0; speed = 0;
+	xTile = 0; yTile = 0;
+}
+Camera::Camera(int xPos, int yPos, int w, int h, int spd) {
+	x = xPos; y = yPos; width = w; height = h; speed = spd;
+	GetTileIndex();
+}
+void Camera::Draw(float deltaTime) {
+	// Draw the background
+	bg->DrawBackground(x, y, xTile, yTile, width, height);
+	// DrawEntities
+	// Draw the sprites
+}
+void Camera::Move(float deltaTime, int direction[2]) {
+	x += direction[0] * deltaTime * speed;
+	y += direction[1] * deltaTime * speed;
+	GetTileIndex();
+}
+void Camera::AddToCamera(Background& level) {
+	bg = &level;
+}
+void Camera::GetTileIndex() {
+	xTile = x / 64;
+	yTile = y / 64;
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-
+#include "AABB.h"
 using namespace std;
 
 #ifndef RENDERING_H
@@ -16,6 +16,7 @@ public:
 	float x, y;
 	int width, height, img;
 	bool isCollidable;
+	//AABB BoxCollider;
 	Tile();
 	Tile(float xPos, float yPos, int w, int h, int img, bool collision); // Create a tile with x and y pos, int width and height
 };
@@ -60,5 +61,23 @@ private:
 	void ReserveLevel();
 };
 
-
+/** A camera is an object with position, width, and height. 
+	It tells objects to draw themselves with an offset 
+	according to its location */
+class Camera {
+public:
+	int x, y;
+	int width, height;
+	int speed;
+	Camera();
+	Camera(int xPos, int yPos, int w, int h, int spd);
+	void Draw(float deltaTime);
+	void Move(float deltaTime, int direction[2]);
+	void AddToCamera(Background& bg);
+private:
+	int xTile, yTile;
+	Background* bg;
+	//AABB BoxCollider;
+	void GetTileIndex();
+};
 #endif

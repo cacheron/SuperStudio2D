@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef PHYSICS_H
-#define PHYSICS_H
+#ifndef AABB_H
+#define AABB_H
 
 // an Axis Aligned Bounding Box Class for collisions
 class AABB {

@@ -24,6 +24,7 @@ GLuint spriteTex;
 
 // Size of the sprite.
 int spriteSize[2];
+int camPos[2];
 
 int main(void)
 {
@@ -116,6 +117,9 @@ int main(void)
 	bg->AddToTileSet(grass);
 	bg->AddToTileSet(carpet);
 
+	Camera* camera = new Camera(0, 0, 14, 11, 300);
+	camera->AddToCamera(*bg);
+
     // The game loop.
 	kbState = SDL_GetKeyboardState(NULL);
 	while (!shouldExit) {
@@ -157,11 +161,26 @@ int main(void)
 		if (kbState[SDL_SCANCODE_RIGHT]) {
 			spritePos[0] += 300 * deltaTime;
 		}
+
+		if (kbState[SDL_SCANCODE_W]) {
+			camPos[1] = -1;
+		} else if (kbState[SDL_SCANCODE_S]) {
+			camPos[1] = 1;
+		} else { camPos[1] = 0; }
+
+		if (kbState[SDL_SCANCODE_A]) {
+			camPos[0] = -1;
+		} else if (kbState[SDL_SCANCODE_D]) {
+			camPos[0] = 1;
+		} else { camPos[0] = 0; }
+		
+		camera->Move(deltaTime, camPos);
+
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
 		// Game drawing goes here.
-		bg->DrawBackground(0, 0, 0, 0, 16, 16);
+		camera->Draw(deltaTime);
         glDrawSprite(spriteTex, spritePos[0], spritePos[1], spriteSize[0], spriteSize[1]);
 
         // Present the most recent frame.
