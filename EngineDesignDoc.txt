@@ -16,7 +16,6 @@
 
 Current Design Needs:
 Part 4: Reimplementing physics
-○ Bring back the physics class. Consier making it a new header file and move the old physics.h into AABB.h instead
 ○ Keep physics the same except for one key difference
     ○ When calculating the background collisions, check the index position first
     ○ Then choose the immediate adjacent boxes and ask if they are collidable

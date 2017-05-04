@@ -17,7 +17,8 @@ public:
 	void Update(float deltaTime); // update the requested movements (projectiles)
 	void DetectCollisions(); // Check all actors and tiles for collisions
 private:
-	vector<vector<Tile*>>* decorations;
+	Background* decorations;
+	vector<Actor*> actors;
 };
 
 #endif
