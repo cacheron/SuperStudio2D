@@ -157,9 +157,36 @@ int main(void)
 	decoration->AddToTileSet(chair);
 	decoration->AddToTileSet(red_case);
 
+	// Create the player animations
+	vector<Frame*> frames_player_up;
+	vector<Frame*> frames_player_down;
+	vector<Frame*> frames_player_left;
+	vector<Frame*> frames_player_right;
+	int spr_player_up = glTexImageTGAFile("img/spr_player_back.tga", &tex_w, &tex_h);
+	int spr_player_down = glTexImageTGAFile("img/spr_player_front.tga", &tex_w, &tex_h);
+	int spr_player_left = glTexImageTGAFile("img/spr_player_left.tga", &tex_w, &tex_h);
+	int spr_player_right = glTexImageTGAFile("img/spr_player_right.tga", &tex_w, &tex_h);
+	
+	// putting false because the actor has a boxcollider, TODO use frame colliders instead of actor
+	Frame* player_up = new Frame(0, 0, 64, 64, spr_player_up, false, 0.2);		frames_player_up.push_back(player_up);
+	Frame* player_down = new Frame(0, 0, 64, 64, spr_player_down, false, 0.2);	frames_player_down.push_back(player_down);
+	Frame* player_left = new Frame(0, 0, 64, 64, spr_player_left, false, 0.2);	frames_player_left.push_back(player_left);
+	Frame* player_right = new Frame(0, 0, 64, 64, spr_player_right, false, 0.2); frames_player_right.push_back(player_right);
+	
+	Animation* anim_player_up = new Animation(frames_player_up, false, true);
+	Animation* anim_player_down = new Animation(frames_player_down, false, true);
+	Animation* anim_player_left = new Animation(frames_player_left, false, true);
+	Animation* anim_player_right = new Animation(frames_player_right, false, true);
+	// Create the actor
+	Actor* player = new Actor(0, 0, 64, 64, 20, 350, 4);
+	player->AddAnimation(anim_player_up);
+	player->AddAnimation(anim_player_down);
+	player->AddAnimation(anim_player_left);
+	player->AddAnimation(anim_player_right);
 	Camera* camera = new Camera(0, 0, 14, 11, 300);
 	camera->AddBackground(*bg);
 	camera->AddDecoration(*decoration);
+	camera->AddActor(player);
     // The game loop.
 	kbState = SDL_GetKeyboardState(NULL);
 	while (!shouldExit) {
@@ -190,17 +217,16 @@ int main(void)
 			shouldExit = 1;
 		}
 		if (kbState[SDL_SCANCODE_UP]) {
-			spritePos[1] -= 300 * deltaTime;
-		}
-		if (kbState[SDL_SCANCODE_DOWN]) {
-			spritePos[1] += 300 * deltaTime;
-		}
+			player->input[1] = -1;
+		} else if (kbState[SDL_SCANCODE_DOWN]) {
+			player->input[1] = 1;
+		} else { player->input[1] = 0; }
+
 		if (kbState[SDL_SCANCODE_LEFT]) {
-			spritePos[0] -= 300 * deltaTime;
-		}
-		if (kbState[SDL_SCANCODE_RIGHT]) {
-			spritePos[0] += 300 * deltaTime;
-		}
+			player->input[0] = -1;
+		} else if (kbState[SDL_SCANCODE_RIGHT]) {
+			player->input[0] = 1;
+		} else { player->input[0] = 0; }
 
 		if (kbState[SDL_SCANCODE_W]) {
 			camPos[1] = -1;
@@ -215,13 +241,13 @@ int main(void)
 		} else { camPos[0] = 0; }
 		
 		camera->Move(deltaTime, camPos);
+		player->Update(deltaTime);
 
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
 		// Game drawing goes here.
 		camera->Draw(deltaTime);
-        glDrawSprite(spriteTex, spritePos[0], spritePos[1], spriteSize[0], spriteSize[1]);
 
         // Present the most recent frame.
         SDL_GL_SwapWindow(window);

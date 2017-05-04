@@ -1,6 +1,8 @@
 #include "Rendering.h"
 #include "DrawUtils.h"
 
+using namespace std;
+
 // Tile code implementation
 Tile::Tile() {
 	x = 0.0; y = 0.0; img = 0;
@@ -12,6 +14,9 @@ Tile::Tile(float xPos, float yPos, int w, int h, int image, bool collision) {
 	width = w;
 	height = h;
 	isCollidable = collision;
+	if (isCollidable) {
+		BoxCollider = new AABB(x, y, width, height);
+	}
 }
 
 // Frame class implementation
@@ -26,6 +31,9 @@ Frame::Frame(float xPos, float yPos, int w, int h, int image, bool collision, fl
 	width = w;
 	height = h;
 	isCollidable = collision;
+	if (isCollidable) {
+		BoxCollider = new AABB(x, y, width, height);
+	}
 	duration = dur;
 }
 
@@ -40,17 +48,19 @@ Animation::Animation(vector<Frame*>& frameVector, bool finished, bool rpt) {
 	ReserveFrames();
 	animation = frameVector;
 	isFinished = finished; repeat = rpt; elapsedTime = 0.0;
+	currentFrame = 0;
 }
-void Animation::SetAnimation(vector<Frame*>& newAnimation) {
-	frameCount = newAnimation.size(); elapsedTime = 0.0;
+void Animation::SetAnimation(Animation& newAnimation) {
+	frameCount = newAnimation.frameCount; elapsedTime = 0.0;
 	animation.clear();
 	ReserveFrames();
-	animation = newAnimation;
+	isFinished = newAnimation.isFinished; repeat = newAnimation.repeat;
+	animation = newAnimation.animation;
 }
-void Animation::DrawAnimation(float deltaTime, int xPos, int yPos, bool repeat) {
+void Animation::Draw(float deltaTime, int xPos, int yPos, bool repeat) {
 	if (!isFinished) {
 		elapsedTime += deltaTime;
-		if (elapsedTime >= animation[currentFrame]->duration) {
+		if (elapsedTime >= animation.at(currentFrame)->duration) {
 			// switch the animation
 			currentFrame++;	elapsedTime = 0.0;
 			if (currentFrame >= frameCount) {
@@ -63,6 +73,58 @@ void Animation::DrawAnimation(float deltaTime, int xPos, int yPos, bool repeat) 
 	glDrawSprite(animation[currentFrame]->img, xPos, yPos, animation[currentFrame]->width, animation[currentFrame]->height);
 }
 void Animation::ReserveFrames() { animation.reserve(frameCount); }
+
+
+// Actor implementation
+Actor::Actor() {
+	x = 0.0; y = 0.0; img = 0;
+	width = 0; height = 0;
+	isCollidable = false;
+	input[0] = 0; input[1] = 0; health = 0; speed = 0;
+}
+Actor::Actor(float xPos, float yPos, int w, int h, int hp, int spd, int animCount) {
+	x = xPos; x = yPos; img = 0;
+	width = w;
+	height = h;
+	isCollidable = true;
+	BoxCollider = new AABB(x, y, width, health);
+	health = hp; speed = spd;
+	input[0] = 0; input[1] = 0;
+	animations.reserve(animCount);
+}
+void Actor::AddAnimation(Animation * animation) {
+	animations.push_back(animation);
+	currentAnimation = animations[0];
+}
+void Actor::SetInput(int in[2]) {
+	input[0] = in[0]; input[1] = in[1];
+}
+void Actor::Move(float deltaTime) {
+	x += input[0] * deltaTime * speed;
+	y += input[1] * deltaTime * speed;
+}
+void Actor::Update(float deltaTime) {
+	// for now, index 0 is idle, 1 is up, 2 is down, 3 is left, 4 is right
+	// No diagonal input support!
+	// left and right have less priority
+	if (input[0] > 0) { currentAnimation = animations.at(3); }
+	else if (input[0] < 0) { currentAnimation = animations.at(2); }
+	// Up and down should have priority
+	if (input[1] > 0) { currentAnimation = animations.at(1); }
+	else if (input[1] < 0) { currentAnimation = animations.at(0); }
+	
+	// Move the player
+	Move(deltaTime);
+}
+void Actor::Draw(float deltaTime, int xPos, int yPos) {
+	if (input[0] == 0 && input[1] == 0) {
+		currentAnimation = animations.at(1);
+		currentAnimation->Draw(0.0, xPos, yPos, true);
+	}
+	else {
+		currentAnimation->Draw(deltaTime, xPos, yPos, true);
+	}
+}
 
 // Background class implementation
 Background::Background() {
@@ -119,10 +181,12 @@ void Camera::Draw(float deltaTime) {
 	// Draw Entities on the screen
 	decoration->Draw(x, y, xTile, yTile, width, height);
 	// Draw Sprites on the screen
+	actors[0]->Draw(deltaTime, actors[0]->x - x, actors[0]->y - y);
 }
 void Camera::Move(float deltaTime, int direction[2]) {
 	x += direction[0] * deltaTime * speed;
 	y += direction[1] * deltaTime * speed;
+	if (x < 0) x = 0; if (y < 0) y = 0;
 	BoxCollider.Move(x, y); // update the box collider
 	GetTileIndex(); // update tile index
 }
@@ -131,6 +195,9 @@ void Camera::AddBackground(Background& level) {
 }
 void Camera::AddDecoration(Background& level) {
 	decoration = &level;
+}
+void Camera::AddActor(Actor* actor) {
+	actors.push_back(actor);
 }
 void Camera::GetTileIndex() {
 	xTile = x / 64;

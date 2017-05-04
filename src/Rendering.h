@@ -16,7 +16,7 @@ public:
 	float x, y;
 	int width, height, img;
 	bool isCollidable;
-	AABB BoxCollider;
+	AABB* BoxCollider;
 	Tile();
 	Tile(float xPos, float yPos, int w, int h, int img, bool collision); // Create a tile with x and y pos, int width and height
 };
@@ -35,8 +35,8 @@ public:
 	bool isFinished, repeat;
 	Animation();
 	Animation(vector<Frame*>& frameVector, bool isFinished, bool repeat);
-	void SetAnimation(vector<Frame*>& newAnimation);
-	void DrawAnimation(float deltaTime, int xPos, int yPos, bool repeat);
+	void SetAnimation(Animation& newAnimation);
+	void Draw(float deltaTime, int xPos, int yPos, bool repeat);
 private:
 	int currentFrame;
 	int frameCount;
@@ -45,6 +45,21 @@ private:
 	void ReserveFrames();
 };
 
+/** An Actor is a tile that can move and has animations */
+class Actor : public Tile {
+public:
+	int input[2], health, speed;
+	Actor();
+	Actor(float xPos, float yPos, int w, int h, int hp, int spd, int animCount);
+	void AddAnimation(Animation* animation);
+	void SetInput(int in[2]);
+	void Move(float deltaTime);
+	void Update(float deltaTime); // update movement and animations
+	void Draw(float deltaTime, int xPos, int yPos); // draw the current animation
+private:
+	Animation* currentAnimation;
+	vector<Animation*> animations;
+};
 /** A background is a collection of Tiles, can draw them from a start and end index */
 class Background {
 public:
@@ -75,10 +90,12 @@ public:
 	void Move(float deltaTime, int direction[2]);
 	void AddBackground(Background& level); // Adds the background to the camera
 	void AddDecoration(Background& level); // Adds the decorations to the camera
+	void AddActor(Actor* actor);
 private:
 	int xTile, yTile;
 	Background* bg;
 	Background* decoration;
+	vector<Actor*> actors;
 	AABB BoxCollider;
 	void GetTileIndex();
 };
