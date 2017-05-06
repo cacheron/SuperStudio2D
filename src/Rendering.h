@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "AABB.h"
+
 using namespace std;
 
 #ifndef RENDERING_H
@@ -19,6 +20,17 @@ public:
 	AABB* BoxCollider;
 	Tile();
 	Tile(int xPos, int yPos, int w, int h, int img, bool collision); // Create a tile with x and y pos, int width and height
+};
+
+class Projectile : public Tile {
+public:
+	float dir[2]; float speed; 
+	int damage;
+	bool collision;
+	Projectile();
+	Projectile(int xPos, int yPos, int w, int h, int img, int spd, int dmg, bool collision);
+	void Draw(int x, int y);
+	void Move(float deltaTime);
 };
 
 /** A Frame class is a Tile with a duration */
@@ -58,9 +70,41 @@ public:
 	void Move(int addX, int addY); // move by adding to the x and y pos
 	void Update(float deltaTime); // update movement and animations
 	void Draw(float deltaTime, int xPos, int yPos); // draw the current animation
-private:
+	void TakeDamage(int dmg); // take damage to health
+protected:
 	Animation* currentAnimation;
 	vector<Animation*> animations;
+};
+
+
+class Sentry : public Actor {
+public:
+	int range;
+	Projectile* peanut;
+	char* status;
+	Sentry();
+	Sentry(int xPos, int yPos, int w, int h, int hp, int spd, int rng, int animCount);
+	void Update(float deltaTime); // Behaves like an actor with a script controlling its actions
+	void SetPath(vector<int*> newPath);
+	void SetTarget(int x, int y);
+	void SetBehavior(float chase, float run, float shoot);
+	void SetIMG(int img);
+private:
+	// pathing vairables
+	int currentPoint[2]; int target[2];
+	int pathIndex; bool reverse;
+	vector<int*> path;
+	// behavior vars
+	struct { float CHASE, RUN, SHOOT; } Behavior; float decision;
+	// shooting vars
+	bool fired;
+	bool AtDestination();
+	bool DetectPlayer();
+	void SetInput();
+	void SetDecision();
+	void UpdateDecision(float deltaTime);
+	void UpdateAnimation(float deltaTime);
+	void Shoot(float deltaTime);
 };
 /** A background is a collection of Tiles, can draw them from a start and end index */
 class Background {
@@ -93,11 +137,13 @@ public:
 	void AddBackground(Background& level); // Adds the background to the camera
 	void AddDecoration(Background& level); // Adds the decorations to the camera
 	void AddActor(Actor* actor);
+	void AddProjectile(Projectile* proj);
 private:
 	int xTile, yTile;
 	Background* bg;
 	Background* decoration;
 	vector<Actor*> actors;
+	vector<Projectile*> projectiles;
 	AABB BoxCollider;
 	void GetTileIndex();
 };

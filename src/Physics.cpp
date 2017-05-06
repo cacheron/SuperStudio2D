@@ -18,6 +18,14 @@ void Physics::AddToPhysicsUpdate(Background* decoration) {
 void Physics::AddToPhysicsUpdate(Actor* actor) {
 	actors.push_back(actor);
 }
+void Physics::AddToPhysicsUpdate(Projectile* proj) {
+	projectiles.push_back(proj);
+}
+bool Physics::IsCollidable(int x, int y) {
+	if (x < 0 || y < 0) return 0;
+	if (y >= colliders.size() || x >= colliders[y].size()) return 0;
+	return (colliders[y][x]->width > 0);
+}
 void Physics::DetectCollisions() {
 	// for every actor, check the adjacent 9 squares
 	// this may look like more work, but its actually more efficient
@@ -41,22 +49,39 @@ void Physics::DetectCollisions() {
 							(*actor_iter)->Move(oldPosition[0], current[1]);
 							// now test agains all boxes
 							bool stillOverlap = 0;
-							for (int y2 = actor_y - 1; y2 < actor_y + 2; y2++) {
-								for (int x2 = actor_x - 1; x2 < actor_x + 2; x2++) {
-									stillOverlap = AABBIntersect((*actor_iter)->BoxCollider, colliders[y][x]);
-								}
-							}
-							if (stillOverlap) (*actor_iter)->Move(oldPosition[0], oldPosition[1]);
 						}
 					}
 				}
 			}
 		}
 	}
+	// projectiles
+	vector<Projectile*>::iterator proj_iter = projectiles.begin();
+	for (proj_iter = projectiles.begin(); proj_iter != projectiles.end(); ++proj_iter) {
+		int proj_x = (*proj_iter)->x / 64;
+		int proj_y = (*proj_iter)->y / 64;
+		for (int y = proj_y - 1; y < proj_y + 2; y++) {
+			for (int x = proj_x - 1; x < proj_x + 2; x++) {
+				if (IsCollidable(x, y)) {
+					if (AABBIntersect((*proj_iter)->BoxCollider, colliders[y][x])) {
+						// collision resolution
+						(*proj_iter)->collision = 1;
+					}
+				}
+			}
+		}
+		// see if we hit an actor
+		if (AABBIntersect((*proj_iter)->BoxCollider, actors[0]->BoxCollider)) {
+			// do damage and set proj coll to true
+			(*proj_iter)->collision = 1;
+			actors[0]->TakeDamage((*proj_iter)->damage);
+		}
+	}
 }
-
-bool Physics::IsCollidable(int x, int y) {
-	if (x < 0 || y < 0) return 0;
-	if (y >= colliders.size() || x >= colliders[y].size()) return 0;
-	return (colliders[y][x]->width > 0);
+void Physics::Update(float deltaTime) {
+	// Update the physics of moving objects that dont update themselves
+	vector<Projectile*>::iterator proj_iter = projectiles.begin();
+	for (proj_iter = projectiles.begin(); proj_iter != projectiles.end(); ++proj_iter) {
+		(*proj_iter)->Move(deltaTime);
+	}
 }

@@ -33,14 +33,10 @@ void AABB::Move(int xPos, int yPos) {
 // function for AABB intersect without the classes
 bool AABBIntersect(AABB* box1, AABB* box2) {
 	//box1 to the right
-	if ((box1->x >= box2->x + box2->width) ||
-		(box1->x + box1->width <= box2->x)) {
-		return 0;
-	}
-	if ((box1->y - 1 >= box2->y + box2->height) ||
-		(box1->y + box1->height + 1 <= box2->y)) {
-		return 0;
-	}
+	if (box1->x >= box2->x + box2->width) return 0;
+	if (box1->x + box1->width <= box2->x) return 0;
+	if (box1->y - 1 >= box2->y + box2->height) return 0;
+	if (box1->y + box1->height + 1 <= box2->y) return 0;
 	return 1;
 }
 int* AABBOverlap(AABB* box1, AABB* box2) {

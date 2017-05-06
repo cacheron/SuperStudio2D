@@ -19,7 +19,38 @@ Tile::Tile(int xPos, int yPos, int w, int h, int image, bool collision) {
 	}
 }
 
-// Frame class implementation
+// Projectile class
+Projectile::Projectile() {
+	x = 0.0; y = 0.0; img = 0;
+	width = 0; height = 0;
+	isCollidable = true;
+	speed = 0;
+	collision = false;
+	damage = 5;
+}
+Projectile::Projectile(int xPos, int yPos, int w, int h, int image, int spd, int dmg, bool coll) {
+	x = xPos; x = yPos; img = image;
+	width = w;
+	height = h;
+	isCollidable = coll;
+	if (isCollidable) {
+		BoxCollider = new AABB(x, y, width, height);
+	}
+	speed = spd;
+	collision = false;
+	damage = dmg;
+}
+void Projectile::Draw(int xPos, int yPos) {
+	glDrawSprite(img, xPos, yPos, width, height);
+}
+void Projectile::Move(float deltaTime) {
+	x += dir[0] * deltaTime * speed;
+	y += dir[1] * deltaTime * speed;
+	if (collision) { x = -64; y = -64; } // hide the proj
+	BoxCollider->x = x; BoxCollider->y = y;
+}
+
+//Frame class implementation
 Frame::Frame() {
 	x = 0.0; y = 0.0;
 	width = 0; height = 0;
@@ -74,7 +105,6 @@ void Animation::Draw(float deltaTime, int xPos, int yPos, bool repeat) {
 }
 void Animation::ReserveFrames() { animation.reserve(frameCount); }
 
-
 // Actor implementation
 Actor::Actor() {
 	x = 0; y = 0; img = 0;
@@ -112,24 +142,199 @@ void Actor::Move(int newX, int newY) {
 }
 void Actor::Update(float deltaTime) {
 	// for now, index 0 is idle, 1 is up, 2 is down, 3 is left, 4 is right
-	// No diagonal input support!
+	// Up and down
+	if (health < 0) {
+		input[0] = 0; input[1] = 0;
+		// set current animation
+		currentAnimation = animations.at(4);
+	} else {
+		if (input[1] > 0) { currentAnimation = animations.at(1); }
+		else if (input[1] < 0) { currentAnimation = animations.at(0); }
+		// left and right
+		if (input[0] > 0) { currentAnimation = animations.at(3); }
+		else if (input[0] < 0) { currentAnimation = animations.at(2); }
+	}
+	// Move the player
+	Move(deltaTime);
+}
+void Actor::Draw(float deltaTime, int xPos, int yPos) {
+	if (input[0] == 0 && input[1] == 0) {
+		currentAnimation->Draw(0.0, xPos, yPos, true);
+	}
+	else {
+		currentAnimation->Draw(deltaTime, xPos, yPos, true);
+	}
+}
+void Actor::TakeDamage(int dmg) {
+	health -= dmg;
+}
+
+// Sentry Implementation
+Sentry::Sentry() {
+	x = 0; y = 0; img = 0;
+	width = 0; height = 0;
+	isCollidable = false;
+	input[0] = 0; input[1] = 0; health = 0; speed = 0;
+	animations.reserve(0);
+	status = "patrol";
+	currentPoint[0] = x; currentPoint[1] = y;
+	pathIndex = 0; bool reverse = false;
+	range = 0;
+	target[0] = 0; target[1] = 0;
+	Behavior.CHASE = 0.33;
+	Behavior.RUN = 0.33;
+	Behavior.SHOOT = 0.33;
+	decision = -1.0;
+	peanut = new Projectile(-64, -64, 64, 64, 0, 180, 5, true);
+	fired = false;
+}
+Sentry::Sentry(int xPos, int yPos, int w, int h, int hp, int spd, int rng, int animCount) {
+	x = xPos; y = yPos; img = 0;
+	width = w;
+	height = h;
+	isCollidable = true;
+	BoxCollider = new AABB(x + (width / 16), y + (height / 16), (width / 4) * 3.5, (height / 4) * 3.5);
+	health = hp; speed = spd;
+	input[0] = 0; input[1] = 0;
+	animations.reserve(animCount);
+	status = "patrol";
+	currentPoint[0] = x; currentPoint[1] = y;
+	pathIndex = 0; bool reverse = false;
+	range = rng;
+	target[0]=0; target[1] = 0;
+	Behavior.CHASE = 0.33;
+	Behavior.RUN = 0.33;
+	Behavior.SHOOT = 0.33;
+	decision = -1.0;
+	peanut = new Projectile(-64, -64, 64, 64, 0, 180, 5, true);
+	fired = false;
+}
+void Sentry::SetPath(vector<int*> newPath) {
+	path = newPath;
+	currentPoint[0] = path[0][0];
+	currentPoint[1] = path[0][1];
+}
+void Sentry::SetTarget(int x, int y) {
+	target[0] = x; target[1] = y;
+}
+void Sentry::SetBehavior(float chase, float run, float shoot) {
+	Behavior.CHASE = chase;
+	Behavior.RUN = run;
+	Behavior.SHOOT = shoot;
+}
+void Sentry::SetDecision() {
+	if (decision == -1.0) {
+		decision = (float)rand() / (float)RAND_MAX;
+	}
+	if (decision > 0 && decision <= Behavior.CHASE) {
+		status = "chase";
+	}
+	if (decision > Behavior.CHASE && decision <= Behavior.CHASE + Behavior.RUN) {
+		status = "run";
+	}
+	if (decision > Behavior.CHASE + Behavior.RUN && decision <= 1.0) {
+		status = "shoot";
+	}
+}
+void Sentry::SetInput() {
+	int xDir = currentPoint[0] * 64 - x;
+	int yDir = currentPoint[1] * 64 - y;
+	input[0] = 0; input[1] = 0;
+	if (yDir < 0)	input[1] = -1; // move up
+	if (yDir > 0) input[1] = 1; // move down
+	if (xDir < 0) input[0] = -1; // move left
+	if (xDir > 0) input[0] = 1; // move right
+	if (status == "run") {
+		input[0] *= -1;
+		input[1] *= -1;
+	}
+	if (status == "shoot") {
+		// now we need to fire a peanut at the player
+		if (!fired) { // havent fired yet, set the peanut to correct position
+			peanut->x = x; peanut->y = y;
+			peanut->BoxCollider->x = x; peanut->BoxCollider->x = x;
+			float total = (abs(xDir) + abs(yDir));
+			peanut->dir[0] = xDir / total;
+			peanut->dir[1] = yDir / total;
+			peanut->collision = 0;
+			fired = 1;
+		} else {
+			if (peanut->collision) fired = 0;
+		}
+		input[0] = 0; input[1] = 0;
+	}
+}
+void Sentry::SetIMG(int img) {
+	peanut->img = img;
+}
+void Sentry::Update(float deltaTime) {
+	// Here, the sentry both updates the animation and
+	// Decides on an action to take
+	UpdateDecision(deltaTime);
+	UpdateAnimation(deltaTime);
+}
+bool Sentry::AtDestination() {
+	return (x / 64 == currentPoint[0] && y / 64 == currentPoint[1]);
+}
+bool Sentry::DetectPlayer() {
+	int distX = target[0] - x; int distY= target[1] - y;
+	float distance = (distX * distX) + (distY * distY);
+	if (distance <= range * range) {
+		return 1;
+	}
+	return 0;
+}
+void Sentry::UpdateDecision(float deltaTime) {
+	// for now, sentry can only walk back and forth between the points
+	// Detect if we can see the player:
+	if (DetectPlayer()) {
+		// Here the AI is chasing/running from/shooting the player
+		currentPoint[0] = target[0] / 64;
+		currentPoint[1] = target[1] / 64;
+		// Then he must decide which behavior he wishes to do
+		SetDecision();
+	}
+	else { // We dont know where the player is, so keep patrolling
+		if (status != "patrol") {
+			// go back to original point
+			pathIndex = 0; decision = -1.0;
+			currentPoint[0] = path[pathIndex][0];
+			currentPoint[1] = path[pathIndex][1];
+			status = "patrol";
+		}
+		else {
+			if (AtDestination()) {
+				// time to move to the next point
+				if (!reverse) {
+					pathIndex++;
+					if (pathIndex >= path.size()) {
+						reverse = true;
+						pathIndex -= 2;
+					}
+				}
+				else {
+					pathIndex--;
+					if (pathIndex < 0) {
+						reverse = false;
+						pathIndex += 2;
+					}
+				}
+				currentPoint[0] = path[pathIndex][0];
+				currentPoint[1] = path[pathIndex][1];
+			}
+		}
+	}
+	SetInput();
+	// Move the player
+	Move(deltaTime);
+}
+void Sentry::UpdateAnimation(float deltaTime) {
 	// Up and down
 	if (input[1] > 0) { currentAnimation = animations.at(1); }
 	else if (input[1] < 0) { currentAnimation = animations.at(0); }
 	// left and right
 	if (input[0] > 0) { currentAnimation = animations.at(3); }
 	else if (input[0] < 0) { currentAnimation = animations.at(2); }
-	// Move the player
-	Move(deltaTime);
-}
-void Actor::Draw(float deltaTime, int xPos, int yPos) {
-	if (input[0] == 0 && input[1] == 0) {
-		currentAnimation = animations.at(1);
-		currentAnimation->Draw(0.0, xPos, yPos, true);
-	}
-	else {
-		currentAnimation->Draw(deltaTime, xPos, yPos, true);
-	}
 }
 
 // Background class implementation
@@ -191,11 +396,17 @@ void Camera::Draw(float deltaTime) {
 	}
 	// Draw Entities on the screen
 	decoration->Draw(x, y, xTile, yTile, width, height);
+	// Draw projectiles
+	vector<Projectile*>::iterator proj_iter = projectiles.begin();
+	for (proj_iter = projectiles.begin(); proj_iter != projectiles.end(); ++proj_iter) {
+		(*proj_iter)->Draw((*proj_iter)->x - x, (*proj_iter)->y - y);
+	}
 }
 void Camera::Move(float deltaTime, int direction[2]) {
 	x += direction[0] * deltaTime * speed;
 	y += direction[1] * deltaTime * speed;
 	if (x < 0) x = 0; if (y < 0) y = 0;
+	if (y / 64 >= 30) y = 30 * 64;
 	BoxCollider.Move(x, y); // update the box collider
 	GetTileIndex(); // update tile index
 }
@@ -207,6 +418,9 @@ void Camera::AddDecoration(Background& level) {
 }
 void Camera::AddActor(Actor* actor) {
 	actors.push_back(actor);
+}
+void Camera::AddProjectile(Projectile* proj) {
+	projectiles.push_back(proj);
 }
 void Camera::GetTileIndex() {
 	xTile = x / 64;

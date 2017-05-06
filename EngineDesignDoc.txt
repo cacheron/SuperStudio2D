@@ -16,9 +16,15 @@
 
 Current Design Needs:
 Part 5: AI Decision Making
-○ Since our AI is a flight attendant, we just need some basic functionallity
-○ Its first behavior is to walk back and forth between two points
-    ○ If something walks into its range of vision, then trigger the follow behavior.
-○ The second behavior is to follow the player to get within range (our old follow method)
-○ The third behavior is to throw a peanut at the player. It can only do this when it has already found the player
-    ○ Must be a random decision between follow and throw. Make the decision every X amount of seconds
+○ Its first behavior is to walk back and forth between a vector of points
+    ○ (BUG: walks faster in reverse)
+    ○ (BUG: when adding more than two, he starts repeating a few points and missing the last (change looping conditions))
+    ○ Player is currently discovered if they walk in range. This is temporary until we do some math on detection angles
+    
+○ Second behavior, chase, is a dumb follow. He just goes straight to the player with no pathing
+    ○ When the player is no longer seen, the AI goes back to his patrol route. This step NEEDS pathing to work correctly
+        or else he gets snagged
+
+○ The third behavior is to run away from the player. This could be better with pathing, but for now he just runs the opposite direction.
+ 
+○ The fourth behavior is to throw a peanut at the player. It can only do this when it has already found the player

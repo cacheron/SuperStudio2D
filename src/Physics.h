@@ -13,6 +13,7 @@ public:
 	Physics();
 	void AddToPhysicsUpdate(Background* decoration);
 	void AddToPhysicsUpdate(Actor* actor);
+	void AddToPhysicsUpdate(Projectile* proj);
 	// Physics loop
 	void Update(float deltaTime); // update the requested movements (projectiles)
 	void DetectCollisions(); // Check all actors and tiles for collisions
@@ -20,6 +21,7 @@ private:
 	bool IsCollidable(int x, int y);
 	vector< vector<AABB*> > colliders;
 	vector<Actor*> actors;
+	vector<Projectile*> projectiles;
 };
 
 #endif
