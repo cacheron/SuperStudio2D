@@ -13,12 +13,12 @@ using namespace std;
 */
 class Tile {
 public:
-	float x, y;
+	int x, y;
 	int width, height, img;
 	bool isCollidable;
 	AABB* BoxCollider;
 	Tile();
-	Tile(float xPos, float yPos, int w, int h, int img, bool collision); // Create a tile with x and y pos, int width and height
+	Tile(int xPos, int yPos, int w, int h, int img, bool collision); // Create a tile with x and y pos, int width and height
 };
 
 /** A Frame class is a Tile with a duration */
@@ -26,7 +26,7 @@ class Frame : public Tile {
 public:
 	float duration;
 	Frame();
-	Frame(float xPos, float yPos, int w, int h, int img, bool collision, float dur);
+	Frame(int xPos, int yPos, int w, int h, int img, bool collision, float dur);
 };
 
 /** An animation is a collection of frames */
@@ -49,11 +49,13 @@ private:
 class Actor : public Tile {
 public:
 	int input[2], health, speed;
+	int previous[2];
 	Actor();
-	Actor(float xPos, float yPos, int w, int h, int hp, int spd, int animCount);
+	Actor(int xPos, int yPos, int w, int h, int hp, int spd, int animCount);
 	void AddAnimation(Animation* animation);
 	void SetInput(int in[2]);
-	void Move(float deltaTime);
+	void Move(float deltaTime); // move using input and delta time
+	void Move(int addX, int addY); // move by adding to the x and y pos
 	void Update(float deltaTime); // update movement and animations
 	void Draw(float deltaTime, int xPos, int yPos); // draw the current animation
 private:

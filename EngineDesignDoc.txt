@@ -15,15 +15,6 @@
     that rely on top-down perspectives and top-down rendering.
 
 Current Design Needs:
-Part 4: Reimplementing physics
-○ Keep physics the same except for one key difference
-    ○ When calculating the background collisions, check the index position first
-    ○ Then choose the immediate adjacent boxes and ask if they are collidable
-    ○ Since classes do not have AABBs, the physics object will instead have two temporary boxes with values
-        That are changed when needed, and then compared. No AABB mess.
-    ○ If they are collidable, do an AABB test by using the function rather than making an AABB?
-○ Not enough time, use old projectile code but only for the enemy this time
-
 Part 5: AI Decision Making
 ○ Since our AI is a flight attendant, we just need some basic functionallity
 ○ Its first behavior is to walk back and forth between two points

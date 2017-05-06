@@ -9,7 +9,7 @@ Tile::Tile() {
 	width = 0; height = 0;
 	isCollidable = false;
 }
-Tile::Tile(float xPos, float yPos, int w, int h, int image, bool collision) {
+Tile::Tile(int xPos, int yPos, int w, int h, int image, bool collision) {
 	x = xPos; x = yPos; img = image;
 	width = w;
 	height = h;
@@ -26,7 +26,7 @@ Frame::Frame() {
 	isCollidable = false;
 	duration = 0.0;
 }
-Frame::Frame(float xPos, float yPos, int w, int h, int image, bool collision, float dur) {
+Frame::Frame(int xPos, int yPos, int w, int h, int image, bool collision, float dur) {
 	x = xPos; x = yPos; img = image;
 	width = w;
 	height = h;
@@ -77,17 +77,17 @@ void Animation::ReserveFrames() { animation.reserve(frameCount); }
 
 // Actor implementation
 Actor::Actor() {
-	x = 0.0; y = 0.0; img = 0;
+	x = 0; y = 0; img = 0;
 	width = 0; height = 0;
 	isCollidable = false;
 	input[0] = 0; input[1] = 0; health = 0; speed = 0;
 }
-Actor::Actor(float xPos, float yPos, int w, int h, int hp, int spd, int animCount) {
-	x = xPos; x = yPos; img = 0;
+Actor::Actor(int xPos, int yPos, int w, int h, int hp, int spd, int animCount) {
+	x = xPos; y = yPos; img = 0;
 	width = w;
 	height = h;
 	isCollidable = true;
-	BoxCollider = new AABB(x, y, width, health);
+	BoxCollider = new AABB(x + (width / 16), y + (height / 16), (width / 4) * 3.5, (height / 4) * 3.5);
 	health = hp; speed = spd;
 	input[0] = 0; input[1] = 0;
 	animations.reserve(animCount);
@@ -100,19 +100,25 @@ void Actor::SetInput(int in[2]) {
 	input[0] = in[0]; input[1] = in[1];
 }
 void Actor::Move(float deltaTime) {
+	previous[0] = x; previous[1] = y;
 	x += input[0] * deltaTime * speed;
 	y += input[1] * deltaTime * speed;
+	if (x < 0) x = 0; if (y < 0) y = 0;
+	BoxCollider->x = x; BoxCollider->y = y;
+}
+void Actor::Move(int newX, int newY) {
+	x = newX; y  = newY;
+	BoxCollider->x = x; BoxCollider->y = y;
 }
 void Actor::Update(float deltaTime) {
 	// for now, index 0 is idle, 1 is up, 2 is down, 3 is left, 4 is right
 	// No diagonal input support!
-	// left and right have less priority
-	if (input[0] > 0) { currentAnimation = animations.at(3); }
-	else if (input[0] < 0) { currentAnimation = animations.at(2); }
-	// Up and down should have priority
+	// Up and down
 	if (input[1] > 0) { currentAnimation = animations.at(1); }
 	else if (input[1] < 0) { currentAnimation = animations.at(0); }
-	
+	// left and right
+	if (input[0] > 0) { currentAnimation = animations.at(3); }
+	else if (input[0] < 0) { currentAnimation = animations.at(2); }
 	// Move the player
 	Move(deltaTime);
 }
@@ -143,15 +149,15 @@ Tile* Background::GetTile(int x, int y) {
 		 (y >= height || y <= -1) ) {
 		return tileSet[0];
 	}
-	return tileSet.at(level[x][y]);
+	return tileSet.at(level[y][x]);
 }
 void Background::SetLevel(vector< vector<int>>& newLevel) {
 	level = newLevel;
 }
 void Background::Draw(int xPix, int yPix, int xTile, int yTile, int w, int h) {
-	for (int xIndex = xTile; xIndex < xTile + w; ++xIndex) { // adjust width + height relative
-		for (int yIndex = yTile; yIndex < yTile + h; ++yIndex) { // to the cam tile position
-			Tile tile = *GetTile(yIndex, xIndex);
+	for (int yIndex = yTile; yIndex < yTile + h; ++yIndex) { // adjust width + height relative
+		for (int xIndex = xTile; xIndex < xTile + w; ++xIndex) { // to the cam tile position
+			Tile tile = *GetTile(xIndex, yIndex);
 			int xPos = (xIndex * tile.width) - xPix; // adjust drawing relative to origin
 			int yPos = (yIndex * tile.height) - yPix;
 			glDrawSprite(tile.img, xPos, yPos, tile.height, tile.width);
@@ -178,10 +184,10 @@ Camera::Camera(int xPos, int yPos, int w, int h, int spd) {
 void Camera::Draw(float deltaTime) {
 	// Draw the background
 	bg->Draw(x, y, xTile, yTile, width, height);
-	// Draw Entities on the screen
-	decoration->Draw(x, y, xTile, yTile, width, height);
 	// Draw Sprites on the screen
 	actors[0]->Draw(deltaTime, actors[0]->x - x, actors[0]->y - y);
+	// Draw Entities on the screen
+	decoration->Draw(x, y, xTile, yTile, width, height);
 }
 void Camera::Move(float deltaTime, int direction[2]) {
 	x += direction[0] * deltaTime * speed;

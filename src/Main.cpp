@@ -6,6 +6,7 @@
 #include <assert.h>
 #include "DrawUtils.h"
 #include "Rendering.h"
+#include "Physics.h"
 
 // Set this to true to make the game loop exit.
 char shouldExit = 0;
@@ -86,36 +87,40 @@ int main(void)
 	int tex_broke = glTexImageTGAFile("img/tex_broke.tga", &tex_w, &tex_h);
 	Tile* broke = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_broke, false);
 
-	int tex_grass = glTexImageTGAFile("img/tex_grass.tga", &tex_w, &tex_h);
-	Tile* grass = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_grass, false);
+	int tex_clouds = glTexImageTGAFile("img/tex_clouds.tga", &tex_w, &tex_h);
+	Tile* clouds = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_clouds, false);
 
 	int tex_carpet = glTexImageTGAFile("img/tex_carpet.tga", &tex_w, &tex_h);
 	Tile* carpet = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_carpet, false);
 
-	int level[12][12] = {	{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
-							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 }
+	int level[16][13] = {	{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
+							{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
 						};
 	// convert level to 2d vector
 	vector<vector<int>> vectorLevel;
-	for (int i = 0; i < 40; ++i) {
+	for (int i = 0; i < 16; ++i) {
 		vectorLevel.push_back(vector<int>(begin(level[i]), end(level[i])));
 	}
-	Background* bg = new Background(12, 12);
+	Background* bg = new Background(13, 16);
 	bg->SetLevel(vectorLevel);
 	bg->AddToTileSet(broke);
-	bg->AddToTileSet(grass);
+	bg->AddToTileSet(clouds);
 	bg->AddToTileSet(carpet);
-
+	
 	// Create the decoration background
 	int spr_transparent = glTexImageTGAFile("img/spr_transparent.tga", &tex_w, &tex_h);
 	Tile* transparent = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_transparent, false);
@@ -132,31 +137,35 @@ int main(void)
 	int spr_case = glTexImageTGAFile("img/spr_case.tga", &tex_w, &tex_h);
 	Tile* red_case = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_case, true);
 
-	int decorations[12][12] = { { 0, 1, 0, 0, 0, 0, 0, 4, 4, 0, 2, 0 },
-								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 },
-								{ 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 },
-								{ 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 2, 0 },
-								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
-								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 },
-								{ 0, 1, 0, 4, 0, 0, 0, 0, 0, 0, 2, 0 },
-								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0 },
-								{ 0, 1, 3, 3, 3, 0, 0, 3, 3, 3, 2, 0 }
+	int decorations[16][13] = { { 0, 1, 0, 0, 0, 0, 0, 0, 4, 4, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 0, 3, 3, 3, 2, 0 },
+								{ 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 0, 3, 3, 3, 2, 0 },
+								{ 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 0, 3, 3, 3, 2, 0 },
+								{ 0, 1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0 },
+								{ 0, 1, 3, 3, 3, 0, 0, 0, 3, 3, 3, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0 },
+								{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0 }
 	};
 	vector<vector<int>> vectordeco;
-	for (int i = 0; i < 40; ++i) {
+	for (int i = 0; i < 16; i++) {
 		vectordeco.push_back(vector<int>(begin(decorations[i]), end(decorations[i])));
 	}
-	Background* decoration = new Background(12, 12);
+	Background* decoration = new Background(13, 16);
 	decoration->SetLevel(vectordeco);
 	decoration->AddToTileSet(transparent);
 	decoration->AddToTileSet(window_left);
 	decoration->AddToTileSet(window_right);
 	decoration->AddToTileSet(chair);
 	decoration->AddToTileSet(red_case);
-
+	
 	// Create the player animations
 	vector<Frame*> frames_player_up;
 	vector<Frame*> frames_player_down;
@@ -177,16 +186,25 @@ int main(void)
 	Animation* anim_player_down = new Animation(frames_player_down, false, true);
 	Animation* anim_player_left = new Animation(frames_player_left, false, true);
 	Animation* anim_player_right = new Animation(frames_player_right, false, true);
+	
 	// Create the actor
-	Actor* player = new Actor(0, 0, 64, 64, 20, 350, 4);
+	Actor* player = new Actor(128, 0, 64, 64, 20, 350, 4);
 	player->AddAnimation(anim_player_up);
 	player->AddAnimation(anim_player_down);
 	player->AddAnimation(anim_player_left);
 	player->AddAnimation(anim_player_right);
+	
+	// Add all entites to physics
+	Physics* physics = new Physics();
+	physics->AddToPhysicsUpdate(player);
+	physics->AddToPhysicsUpdate(decoration);
+
+	// Add all entities to game loop
 	Camera* camera = new Camera(0, 0, 14, 11, 300);
 	camera->AddBackground(*bg);
 	camera->AddDecoration(*decoration);
 	camera->AddActor(player);
+
     // The game loop.
 	kbState = SDL_GetKeyboardState(NULL);
 	while (!shouldExit) {
@@ -216,6 +234,10 @@ int main(void)
 		if (kbState[SDL_SCANCODE_ESCAPE]) {
 			shouldExit = 1;
 		}
+		if (kbState[SDL_SCANCODE_SPACE]) {
+			printf(" (%d, %d)", player->x / 64, player->y / 64);
+			system("pause");
+		}
 		if (kbState[SDL_SCANCODE_UP]) {
 			player->input[1] = -1;
 		} else if (kbState[SDL_SCANCODE_DOWN]) {
@@ -233,12 +255,7 @@ int main(void)
 		} else if (kbState[SDL_SCANCODE_S]) {
 			camPos[1] = 1;
 		} else { camPos[1] = 0; }
-
-		if (kbState[SDL_SCANCODE_A]) {
-			camPos[0] = -1;
-		} else if (kbState[SDL_SCANCODE_D]) {
-			camPos[0] = 1;
-		} else { camPos[0] = 0; }
+		camPos[0] = 0;
 		
 		camera->Move(deltaTime, camPos);
 		player->Update(deltaTime);
@@ -246,6 +263,8 @@ int main(void)
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
+		// Handle physics
+		physics->DetectCollisions();
 		// Game drawing goes here.
 		camera->Draw(deltaTime);
 

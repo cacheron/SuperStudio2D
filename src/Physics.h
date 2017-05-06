@@ -17,7 +17,8 @@ public:
 	void Update(float deltaTime); // update the requested movements (projectiles)
 	void DetectCollisions(); // Check all actors and tiles for collisions
 private:
-	Background* decorations;
+	bool IsCollidable(int x, int y);
+	vector< vector<AABB*> > colliders;
 	vector<Actor*> actors;
 };
 
