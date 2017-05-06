@@ -167,25 +167,25 @@ int main(void)
 	decoration->AddToTileSet(red_case);
 	
 	// Create the player animations
-	vector<Frame*> frames_player_up;
-	vector<Frame*> frames_player_down;
-	vector<Frame*> frames_player_left;
-	vector<Frame*> frames_player_right;
-	int spr_player_up = glTexImageTGAFile("img/spr_player_back.tga", &tex_w, &tex_h);
-	int spr_player_down = glTexImageTGAFile("img/spr_player_front.tga", &tex_w, &tex_h);
-	int spr_player_left = glTexImageTGAFile("img/spr_player_left.tga", &tex_w, &tex_h);
-	int spr_player_right = glTexImageTGAFile("img/spr_player_right.tga", &tex_w, &tex_h);
+		vector<Frame*> frames_player_up;
+		vector<Frame*> frames_player_down;
+		vector<Frame*> frames_player_left;
+		vector<Frame*> frames_player_right;
+		int spr_player_up = glTexImageTGAFile("img/spr_player_back.tga", &tex_w, &tex_h);
+		int spr_player_down = glTexImageTGAFile("img/spr_player_front.tga", &tex_w, &tex_h);
+		int spr_player_left = glTexImageTGAFile("img/spr_player_left.tga", &tex_w, &tex_h);
+		int spr_player_right = glTexImageTGAFile("img/spr_player_right.tga", &tex_w, &tex_h);
 	
-	// putting false because the actor has a boxcollider, TODO use frame colliders instead of actor
-	Frame* player_up = new Frame(0, 0, 64, 64, spr_player_up, false, 0.2);		frames_player_up.push_back(player_up);
-	Frame* player_down = new Frame(0, 0, 64, 64, spr_player_down, false, 0.2);	frames_player_down.push_back(player_down);
-	Frame* player_left = new Frame(0, 0, 64, 64, spr_player_left, false, 0.2);	frames_player_left.push_back(player_left);
-	Frame* player_right = new Frame(0, 0, 64, 64, spr_player_right, false, 0.2); frames_player_right.push_back(player_right);
+		// putting false because the actor has a boxcollider, TODO use frame colliders instead of actor
+		Frame* player_up = new Frame(0, 0, 64, 64, spr_player_up, false, 0.2);		frames_player_up.push_back(player_up);
+		Frame* player_down = new Frame(0, 0, 64, 64, spr_player_down, false, 0.2);	frames_player_down.push_back(player_down);
+		Frame* player_left = new Frame(0, 0, 64, 64, spr_player_left, false, 0.2);	frames_player_left.push_back(player_left);
+		Frame* player_right = new Frame(0, 0, 64, 64, spr_player_right, false, 0.2); frames_player_right.push_back(player_right);
 	
-	Animation* anim_player_up = new Animation(frames_player_up, false, true);
-	Animation* anim_player_down = new Animation(frames_player_down, false, true);
-	Animation* anim_player_left = new Animation(frames_player_left, false, true);
-	Animation* anim_player_right = new Animation(frames_player_right, false, true);
+		Animation* anim_player_up = new Animation(frames_player_up, false, true);
+		Animation* anim_player_down = new Animation(frames_player_down, false, true);
+		Animation* anim_player_left = new Animation(frames_player_left, false, true);
+		Animation* anim_player_right = new Animation(frames_player_right, false, true);
 	
 	// Create the actor
 	Actor* player = new Actor(128, 0, 64, 64, 20, 350, 4);
@@ -194,9 +194,39 @@ int main(void)
 	player->AddAnimation(anim_player_left);
 	player->AddAnimation(anim_player_right);
 	
+	// Create the AI
+	// Create the animations
+		vector<Frame*> frames_attendant_up;
+		vector<Frame*> frames_attendant_down;
+		vector<Frame*> frames_attendant_left;
+		vector<Frame*> frames_attendant_right;
+		int spr_attendant_up = glTexImageTGAFile("img/spr_attendant_back.tga", &tex_w, &tex_h);
+		int spr_attendant_down = glTexImageTGAFile("img/spr_attendant_front.tga", &tex_w, &tex_h);
+		int spr_attendant_left = glTexImageTGAFile("img/spr_attendant_left.tga", &tex_w, &tex_h);
+		int spr_attendant_right = glTexImageTGAFile("img/spr_attendant_right.tga", &tex_w, &tex_h);
+
+		// putting false because the actor has a boxcollider, TODO use frame colliders instead of actor
+		Frame* attendant_up = new Frame(0, 0, 64, 64, spr_attendant_up, false, 0.2);		frames_attendant_up.push_back(attendant_up);
+		Frame* attendant_down = new Frame(0, 0, 64, 64, spr_attendant_down, false, 0.2);	frames_attendant_down.push_back(attendant_down);
+		Frame* attendant_left = new Frame(0, 0, 64, 64, spr_attendant_left, false, 0.2);	frames_attendant_left.push_back(attendant_left);
+		Frame* attendant_right = new Frame(0, 0, 64, 64, spr_attendant_right, false, 0.2);  frames_attendant_right.push_back(attendant_right);
+
+		Animation* anim_attendant_up = new Animation(frames_attendant_up, false, true);
+		Animation* anim_attendant_down = new Animation(frames_attendant_down, false, true);
+		Animation* anim_attendant_left = new Animation(frames_attendant_left, false, true);
+		Animation* anim_attendant_right = new Animation(frames_attendant_right, false, true);
+
+	// Instantiate AI
+	Actor* sentry = new Actor(5*64, 5*64, 64, 64, 5, 350, 4);
+	sentry->AddAnimation(anim_attendant_up);
+	sentry->AddAnimation(anim_attendant_down);
+	sentry->AddAnimation(anim_attendant_left);
+	sentry->AddAnimation(anim_attendant_right);
+
 	// Add all entites to physics
 	Physics* physics = new Physics();
 	physics->AddToPhysicsUpdate(player);
+	physics->AddToPhysicsUpdate(sentry);
 	physics->AddToPhysicsUpdate(decoration);
 
 	// Add all entities to game loop
@@ -204,6 +234,7 @@ int main(void)
 	camera->AddBackground(*bg);
 	camera->AddDecoration(*decoration);
 	camera->AddActor(player);
+	camera->AddActor(sentry);
 
     // The game loop.
 	kbState = SDL_GetKeyboardState(NULL);
@@ -238,6 +269,7 @@ int main(void)
 			printf(" (%d, %d)", player->x / 64, player->y / 64);
 			system("pause");
 		}
+		// player input
 		if (kbState[SDL_SCANCODE_UP]) {
 			player->input[1] = -1;
 		} else if (kbState[SDL_SCANCODE_DOWN]) {
@@ -250,6 +282,23 @@ int main(void)
 			player->input[0] = 1;
 		} else { player->input[0] = 0; }
 
+		// Sentry input
+		if (kbState[SDL_SCANCODE_I]) {
+			sentry->input[1] = -1;
+		}
+		else if (kbState[SDL_SCANCODE_K]) {
+			sentry->input[1] = 1;
+		}
+		else { sentry->input[1] = 0; }
+
+		if (kbState[SDL_SCANCODE_J]) {
+			sentry->input[0] = -1;
+		}
+		else if (kbState[SDL_SCANCODE_L]) {
+			sentry->input[0] = 1;
+		}
+		else { sentry->input[0] = 0; }
+
 		if (kbState[SDL_SCANCODE_W]) {
 			camPos[1] = -1;
 		} else if (kbState[SDL_SCANCODE_S]) {
@@ -259,6 +308,7 @@ int main(void)
 		
 		camera->Move(deltaTime, camPos);
 		player->Update(deltaTime);
+		sentry->Update(deltaTime);
 
         glClearColor(0, 0, 0, 1);
         glClear(GL_COLOR_BUFFER_BIT);

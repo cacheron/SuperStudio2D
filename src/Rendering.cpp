@@ -185,7 +185,10 @@ void Camera::Draw(float deltaTime) {
 	// Draw the background
 	bg->Draw(x, y, xTile, yTile, width, height);
 	// Draw Sprites on the screen
-	actors[0]->Draw(deltaTime, actors[0]->x - x, actors[0]->y - y);
+	vector<Actor*>::iterator actor_iter = actors.begin();
+	for (actor_iter = actors.begin(); actor_iter != actors.end(); ++actor_iter) {
+		(*actor_iter)->Draw(deltaTime, (*actor_iter)->x - x, (*actor_iter)->y - y);
+	}
 	// Draw Entities on the screen
 	decoration->Draw(x, y, xTile, yTile, width, height);
 }
