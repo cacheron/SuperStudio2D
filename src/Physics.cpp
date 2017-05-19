@@ -31,6 +31,7 @@ void Physics::DetectCollisions() {
 	// this may look like more work, but its actually more efficient
 	vector<Actor*>::iterator actor_iter = actors.begin();
 	for (actor_iter = actors.begin(); actor_iter != actors.end(); ++actor_iter) {
+		// this actor is an enemy
 		int actor_x = (*actor_iter)->x / 64;
 		int actor_y = (*actor_iter)->y / 64;
 		for (int y = actor_y - 1; y < actor_y + 2; y++) {
@@ -54,7 +55,30 @@ void Physics::DetectCollisions() {
 				}
 			}
 		}
+		if (actor_iter != actors.begin()) {
+			for (int i = 0; i < actors.size(); i++) {
+				if ((*actor_iter) != actors[i]) {
+					if (AABBIntersect((*actor_iter)->BoxCollider, actors[i]->BoxCollider)) {
+						actors[i]->TakeDamage(1);
+						// collision resolution
+						int* oldPosition = (*actor_iter)->previous;
+						int current[2] = { (*actor_iter)->x, (*actor_iter)->y };
+						// move to where they wanted to go in the x
+						(*actor_iter)->Move(current[0], oldPosition[1]);
+						if (AABBIntersect((*actor_iter)->BoxCollider, actors[i]->BoxCollider)) {
+							// move them back
+							(*actor_iter)->Move(oldPosition[0], oldPosition[1]);
+							// move to wher they wanted to go in the y
+							(*actor_iter)->Move(oldPosition[0], current[1]);
+							// now test agains all boxes
+							bool stillOverlap = 0;
+						}
+					}
+				}
+			}
+		}
 	}
+	
 	// projectiles
 	vector<Projectile*>::iterator proj_iter = projectiles.begin();
 	for (proj_iter = projectiles.begin(); proj_iter != projectiles.end(); ++proj_iter) {
@@ -70,12 +94,30 @@ void Physics::DetectCollisions() {
 				}
 			}
 		}
-		// see if we hit an actor
-		if (AABBIntersect((*proj_iter)->BoxCollider, actors[0]->BoxCollider)) {
-			// do damage and set proj coll to true
-			(*proj_iter)->collision = 1;
-			actors[0]->TakeDamage((*proj_iter)->damage);
+		if (proj_iter != projectiles.begin()) {
+			// see if we hit an actor
+			if (AABBIntersect((*proj_iter)->BoxCollider, actors[0]->BoxCollider)) {
+				// do damage and set proj coll to true
+				(*proj_iter)->collision = 1;
+				actors[0]->TakeDamage((*proj_iter)->damage);
+			}
 		}
+		else {
+			for (int i = 1; i < actors.size(); i++) {
+				if (AABBIntersect((*proj_iter)->BoxCollider, actors[i]->BoxCollider)) {
+					// do damage and set proj coll to true
+					(*proj_iter)->collision = 1;
+					actors[i]->TakeDamage((*proj_iter)->damage);
+				}
+			}
+			for (int i = 1; i < projectiles.size(); i++) {
+				if (AABBIntersect((*proj_iter)->BoxCollider, projectiles[i]->BoxCollider)) {
+					(*proj_iter)->collision = 1;
+					projectiles[i]->collision = 1;
+				}
+			}
+		}
+		
 	}
 }
 void Physics::Update(float deltaTime) {

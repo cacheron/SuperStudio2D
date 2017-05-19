@@ -49,10 +49,10 @@ public:
 	Animation(vector<Frame*>& frameVector, bool isFinished, bool repeat);
 	void SetAnimation(Animation& newAnimation);
 	void Draw(float deltaTime, int xPos, int yPos, bool repeat);
+	float elapsedTime;
 private:
 	int currentFrame;
 	int frameCount;
-	float elapsedTime;
 	vector<Frame*> animation;
 	void ReserveFrames();
 };
@@ -76,6 +76,18 @@ protected:
 	vector<Animation*> animations;
 };
 
+class Player : public Actor {
+public:
+	Player();
+	Player(int xPos, int yPos, int w, int h, int hp, int spd, int animCount);
+	Projectile* punch;
+	void Punch();
+	void Update(float deltaTime);
+private:
+	int lookDir[2];
+	void Move(float deltaTime);
+	bool isPunching, punchPress;
+};
 
 class Sentry : public Actor {
 public:
@@ -104,7 +116,7 @@ private:
 	void SetDecision();
 	void UpdateDecision(float deltaTime);
 	void UpdateAnimation(float deltaTime);
-	void Shoot(float deltaTime);
+	void Shoot(int xDir, int yDir);
 };
 /** A background is a collection of Tiles, can draw them from a start and end index */
 class Background {

@@ -158,15 +158,102 @@ void Actor::Update(float deltaTime) {
 	Move(deltaTime);
 }
 void Actor::Draw(float deltaTime, int xPos, int yPos) {
-	if (input[0] == 0 && input[1] == 0) {
-		currentAnimation->Draw(0.0, xPos, yPos, true);
-	}
-	else {
-		currentAnimation->Draw(deltaTime, xPos, yPos, true);
-	}
+	currentAnimation->Draw(deltaTime, xPos, yPos, currentAnimation->repeat);
 }
 void Actor::TakeDamage(int dmg) {
 	health -= dmg;
+}
+
+// Player Implementation
+Player::Player() {
+	x = 0; y = 0; img = 0;
+	width = 0; height = 0;
+	isCollidable = false;
+	input[0] = 0; input[1] = 0; health = 0; speed = 0;
+	isPunching = false;
+	punchPress = false;
+	lookDir[0] = 0; lookDir[1] = 0;
+	punch = new Projectile(-64, -64, 64, 64, 0, 0, 1, true);
+}
+Player::Player(int xPos, int yPos, int w, int h, int hp, int spd, int animCount) {
+	x = xPos; y = yPos; img = 0;
+	width = w;
+	height = h;
+	isCollidable = true;
+	BoxCollider = new AABB(x + (width / 16), y + (height / 16), (width / 4) * 3.5, (height / 4) * 3.5);
+	health = hp; speed = spd;
+	input[0] = 0; input[1] = 0;
+	animations.reserve(animCount);
+	isPunching = false;
+	punchPress = false;
+	lookDir[0] = 0; lookDir[1] = 0;
+	punch = new Projectile(-64, -64, 64, 64, 0, 0, 1, true);
+}
+void Player::Punch() {
+	if (!punchPress && !isPunching) {
+		punchPress = 1;
+		// Move the projectile to the right position
+		punch->x = lookDir[0] * 62 + x;
+		punch->y = lookDir[1] * 62 + y;
+		punch->BoxCollider->x = punch->x;
+		punch->BoxCollider->y = punch->y;
+		punch->dir[0] = 0; punch->dir[1] = 0;
+		punch->collision = 0;
+	}
+}
+void Player::Update(float deltaTime) {
+	// for now, index 0 is up, 1 is down, 2 is left, 3 is right
+	// 5 is dead
+	// punches are 5 -> 8
+	// Up and down
+	if (health < 0) {
+		input[0] = 0; input[1] = 0;
+		// set current animation
+		currentAnimation = animations.at(4);
+	} else {
+		if (punchPress) {
+			punchPress = 0;
+			isPunching = 1;
+			// set the animation
+			if (lookDir[1] > 0) { currentAnimation = animations.at(6); }
+			else if (lookDir[1] < 0) { currentAnimation = animations.at(5); }
+			// left and right
+			if (lookDir[0] > 0) { currentAnimation = animations.at(8); }
+			else if (lookDir[0] < 0) { currentAnimation = animations.at(7); }
+		}
+		if (isPunching && currentAnimation->isFinished) {
+			currentAnimation->elapsedTime = 0.0f;
+			currentAnimation->isFinished = 0;
+			isPunching = 0;
+			punch->x = -64; punch->y = -64;
+			punch->BoxCollider->y = punch->y;
+			punch->collision = 0;
+		}
+		if (!isPunching) {
+			// up and down
+			if (lookDir[1] > 0) { currentAnimation = animations.at(1); }
+			else if (lookDir[1] < 0) { currentAnimation = animations.at(0); }
+			// left and right
+			if (lookDir[0] > 0) { currentAnimation = animations.at(3); }
+			else if (lookDir[0] < 0) { currentAnimation = animations.at(2); }
+		}
+		if (lookDir[0] == 0 && lookDir[1] == 0) currentAnimation = animations.at(1);
+	}
+	// Move the player
+	if (!isPunching) {
+		Move(deltaTime);
+	}
+}
+void Player::Move(float deltaTime) {
+	previous[0] = x; previous[1] = y;
+	if (input[0] ^ input[1]) {
+		lookDir[0] = input[0];
+		lookDir[1] = input[1];
+	}
+	x += input[0] * deltaTime * speed;
+	y += input[1] * deltaTime * speed;
+	if (x < 0) x = 0; if (y < 0) y = 0;
+	BoxCollider->x = x; BoxCollider->y = y;
 }
 
 // Sentry Implementation
@@ -249,20 +336,24 @@ void Sentry::SetInput() {
 		input[1] *= -1;
 	}
 	if (status == "shoot") {
-		// now we need to fire a peanut at the player
-		if (!fired) { // havent fired yet, set the peanut to correct position
-			peanut->x = x; peanut->y = y;
-			peanut->BoxCollider->x = x; peanut->BoxCollider->x = x;
-			float total = (abs(xDir) + abs(yDir));
-			peanut->dir[0] = xDir / total;
-			peanut->dir[1] = yDir / total;
-			peanut->collision = 0;
-			fired = 1;
-		} else {
-			if (peanut->collision) fired = 0;
-		}
-		input[0] = 0; input[1] = 0;
+		Shoot(xDir, yDir);
 	}
+}
+void Sentry::Shoot(int xDir, int yDir) {
+	// now we need to fire a peanut at the player
+	if (!fired) { // havent fired yet, set the peanut to correct position
+		peanut->x = x; peanut->y = y;
+		peanut->BoxCollider->x = x; peanut->BoxCollider->x = x;
+		float total = (abs(xDir) + abs(yDir));
+		peanut->dir[0] = xDir / total;
+		peanut->dir[1] = yDir / total;
+		peanut->collision = 0;
+		fired = 1;
+	}
+	else {
+		if (peanut->collision) fired = 0;
+	}
+	input[0] = 0; input[1] = 0;
 }
 void Sentry::SetIMG(int img) {
 	peanut->img = img;
@@ -270,8 +361,16 @@ void Sentry::SetIMG(int img) {
 void Sentry::Update(float deltaTime) {
 	// Here, the sentry both updates the animation and
 	// Decides on an action to take
-	UpdateDecision(deltaTime);
-	UpdateAnimation(deltaTime);
+	if (health > 0) {
+		UpdateDecision(deltaTime);
+		UpdateAnimation(deltaTime);
+	} else {
+		// he ded
+		BoxCollider->height = 0; BoxCollider->width = 0;
+		BoxCollider->x = -128; BoxCollider->y = -128;
+		// play ded animation
+		currentAnimation = animations.at(4);
+	}
 }
 bool Sentry::AtDestination() {
 	return (x / 64 == currentPoint[0] && y / 64 == currentPoint[1]);

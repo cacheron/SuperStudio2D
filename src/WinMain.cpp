@@ -42,6 +42,9 @@ int main(void)
         return 1;
     }
     SDL_GL_CreateContext(window);
+	if (SDL_GL_SetSwapInterval(-1) < 0) {
+		SDL_GL_SetSwapInterval(1);
+	}
     // Make sure we have a recent version of OpenGL.
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
@@ -72,15 +75,21 @@ int main(void)
 	Uint64 elapsedTime = 0;
 	float deltaTime, seconds = 0;
 
+	
+
 	// Create the background
 	int tex_w = 0; int tex_h = 0;
+	// filter test
+	int filter_crt = glTexImageTGAFile("img/filter/filter_crt.tga", &tex_w, &tex_h);
+	int filter_vignette = glTexImageTGAFile("img/filter/filter_vignette.tga", &tex_w, &tex_h);
+	int spr_gameover = glTexImageTGAFile("img/ui/spr_gameover.tga", &tex_w, &tex_h);
 	int tex_broke = glTexImageTGAFile("img/tex_broke.tga", &tex_w, &tex_h);
 	Tile* broke = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_broke, false);
 
-	int tex_clouds = glTexImageTGAFile("img/tex_clouds.tga", &tex_w, &tex_h);
+	int tex_clouds = glTexImageTGAFile("img/env/tex_clouds.tga", &tex_w, &tex_h);
 	Tile* clouds = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_clouds, false);
 
-	int tex_carpet = glTexImageTGAFile("img/tex_carpet.tga", &tex_w, &tex_h);
+	int tex_carpet = glTexImageTGAFile("img/env/tex_carpet.tga", &tex_w, &tex_h);
 	Tile* carpet = new Tile(0.0f, 0.0f, tex_w, tex_h, tex_carpet, false);
 
 	int level[40][13] = {	{ 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1 },
@@ -136,19 +145,19 @@ int main(void)
 	bg->AddToTileSet(carpet);
 	
 	// Create the decoration background
-	int spr_transparent = glTexImageTGAFile("img/spr_transparent.tga", &tex_w, &tex_h);
+	int spr_transparent = glTexImageTGAFile("img/env/spr_transparent.tga", &tex_w, &tex_h);
 	Tile* transparent = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_transparent, false);
 
-	int spr_window_left = glTexImageTGAFile("img/spr_window_left.tga", &tex_w, &tex_h);
+	int spr_window_left = glTexImageTGAFile("img/env/spr_window_left.tga", &tex_w, &tex_h);
 	Tile* window_left = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_window_left, true);
 
-	int spr_window_right = glTexImageTGAFile("img/spr_window_right.tga", &tex_w, &tex_h);
+	int spr_window_right = glTexImageTGAFile("img/env/spr_window_right.tga", &tex_w, &tex_h);
 	Tile* window_right = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_window_right, true);
 
-	int spr_chair = glTexImageTGAFile("img/spr_chair.tga", &tex_w, &tex_h);
+	int spr_chair = glTexImageTGAFile("img/env/spr_chair.tga", &tex_w, &tex_h);
 	Tile* chair = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_chair, true);
 
-	int spr_case = glTexImageTGAFile("img/spr_case.tga", &tex_w, &tex_h);
+	int spr_case = glTexImageTGAFile("img/env/spr_case.tga", &tex_w, &tex_h);
 	Tile* red_case = new Tile(0.0f, 0.0f, tex_w, tex_h, spr_case, true);
 
 	int decorations[40][13] = { { 0, 1, 0, 0, 0, 0, 0, 0, 4, 4, 0, 2, 0 },
@@ -204,17 +213,17 @@ int main(void)
 	decoration->AddToTileSet(chair);
 	decoration->AddToTileSet(red_case);
 	
-	// Create the player animations
+	// Move player animations
 		vector<Frame*> frames_player_up;
 		vector<Frame*> frames_player_down;
 		vector<Frame*> frames_player_left;
 		vector<Frame*> frames_player_right;
 		vector<Frame*> frames_player_dead;
-		int spr_player_up = glTexImageTGAFile("img/spr_player_back.tga", &tex_w, &tex_h);
-		int spr_player_down = glTexImageTGAFile("img/spr_player_front.tga", &tex_w, &tex_h);
-		int spr_player_left = glTexImageTGAFile("img/spr_player_left.tga", &tex_w, &tex_h);
-		int spr_player_right = glTexImageTGAFile("img/spr_player_right.tga", &tex_w, &tex_h);
-		int spr_player_dead = glTexImageTGAFile("img/spr_player_dead.tga", &tex_w, &tex_h);
+		int spr_player_up = glTexImageTGAFile("img/player/spr_player_back.tga", &tex_w, &tex_h);
+		int spr_player_down = glTexImageTGAFile("img/player/spr_player_front.tga", &tex_w, &tex_h);
+		int spr_player_left = glTexImageTGAFile("img/player/spr_player_left.tga", &tex_w, &tex_h);
+		int spr_player_right = glTexImageTGAFile("img/player/spr_player_right.tga", &tex_w, &tex_h);
+		int spr_player_dead = glTexImageTGAFile("img/player/spr_player_dead.tga", &tex_w, &tex_h);
 
 		// putting false because the actor has a boxcollider, TODO use frame colliders instead of actor
 		Frame* player_up = new Frame(0, 0, 64, 64, spr_player_up, false, 0.2);		frames_player_up.push_back(player_up);
@@ -228,45 +237,79 @@ int main(void)
 		Animation* anim_player_left = new Animation(frames_player_left, false, true);
 		Animation* anim_player_right = new Animation(frames_player_right, false, true);
 		Animation* anim_player_dead = new Animation(frames_player_dead, false, true);
+
+	// Punch Animations
+		vector<Frame*> frames_player_punch_up;
+		vector<Frame*> frames_player_punch_down;
+		vector<Frame*> frames_player_punch_left;
+		vector<Frame*> frames_player_punch_right;
+		int spr_player_punch_up = glTexImageTGAFile("img/player/spr_player_punch_back.tga", &tex_w, &tex_h);
+		int spr_player_punch_down = glTexImageTGAFile("img/player/spr_player_punch_front.tga", &tex_w, &tex_h);
+		int spr_player_punch_left = glTexImageTGAFile("img/player/spr_player_punch_left.tga", &tex_w, &tex_h);
+		int spr_player_punch_right = glTexImageTGAFile("img/player/spr_player_punch_right.tga", &tex_w, &tex_h);
+
+		Frame* player_punch_up = new Frame(0, 0, 64, 64, spr_player_punch_up, false, 0.28);		frames_player_punch_up.push_back(player_punch_up);
+		Frame* player_punch_down = new Frame(0, 0, 64, 64, spr_player_punch_down, false, 0.25);	frames_player_punch_down.push_back(player_punch_down);
+		Frame* player_punch_left = new Frame(0, 0, 64, 64, spr_player_punch_left, false, 0.28);	frames_player_punch_left.push_back(player_punch_left);
+		Frame* player_punch_right = new Frame(0, 0, 64, 64, spr_player_punch_right, false, 0.28); frames_player_punch_right.push_back(player_punch_right);
+
+		Animation* anim_player_punch_up = new Animation(frames_player_punch_up, false, false);
+		Animation* anim_player_punch_down = new Animation(frames_player_punch_down, false, false);
+		Animation* anim_player_punch_left = new Animation(frames_player_punch_left, false, false);
+		Animation* anim_player_punch_right = new Animation(frames_player_punch_right, false, false);
+
+	// Punch proj
+	int spr_punch = glTexImageTGAFile("img/player/spr_punch.tga", &tex_w, &tex_h);
+	
 	// Create the actor
-	Actor* player = new Actor(128, 0, 64, 64, 20, 350, 5);
+	Player* player = new Player(128, 0, 64, 48, 20, 350, 9);
+	player->punch->img = spr_punch;
 	player->AddAnimation(anim_player_up);
 	player->AddAnimation(anim_player_down);
 	player->AddAnimation(anim_player_left);
 	player->AddAnimation(anim_player_right);
 	player->AddAnimation(anim_player_dead);
-
+	player->AddAnimation(anim_player_punch_up);
+	player->AddAnimation(anim_player_punch_down);
+	player->AddAnimation(anim_player_punch_left);
+	player->AddAnimation(anim_player_punch_right);
 	// Create the AI
 	// Create the animations
 		vector<Frame*> frames_attendant_up;
 		vector<Frame*> frames_attendant_down;
 		vector<Frame*> frames_attendant_left;
 		vector<Frame*> frames_attendant_right;
+		vector<Frame*> frames_attendant_dead;
 		int spr_peanut = glTexImageTGAFile("img/spr_peanut.tga", &tex_w, &tex_h);
-		int spr_attendant_up = glTexImageTGAFile("img/spr_attendant_back.tga", &tex_w, &tex_h);
-		int spr_attendant_down = glTexImageTGAFile("img/spr_attendant_front.tga", &tex_w, &tex_h);
-		int spr_attendant_left = glTexImageTGAFile("img/spr_attendant_left.tga", &tex_w, &tex_h);
-		int spr_attendant_right = glTexImageTGAFile("img/spr_attendant_right.tga", &tex_w, &tex_h);
+		int spr_attendant_up = glTexImageTGAFile("img/sentry/spr_attendant_back.tga", &tex_w, &tex_h);
+		int spr_attendant_down = glTexImageTGAFile("img/sentry/spr_attendant_front.tga", &tex_w, &tex_h);
+		int spr_attendant_left = glTexImageTGAFile("img/sentry/spr_attendant_left.tga", &tex_w, &tex_h);
+		int spr_attendant_right = glTexImageTGAFile("img/sentry/spr_attendant_right.tga", &tex_w, &tex_h);
+		int spr_attendant_dead = glTexImageTGAFile("img/sentry/spr_attendant_dead.tga", &tex_w, &tex_h);
 
 		// putting false because the actor has a boxcollider, TODO use frame colliders instead of actor
 		Frame* attendant_up = new Frame(0, 0, 64, 64, spr_attendant_up, false, 0.2);		frames_attendant_up.push_back(attendant_up);
 		Frame* attendant_down = new Frame(0, 0, 64, 64, spr_attendant_down, false, 0.2);	frames_attendant_down.push_back(attendant_down);
 		Frame* attendant_left = new Frame(0, 0, 64, 64, spr_attendant_left, false, 0.2);	frames_attendant_left.push_back(attendant_left);
 		Frame* attendant_right = new Frame(0, 0, 64, 64, spr_attendant_right, false, 0.2);  frames_attendant_right.push_back(attendant_right);
+		Frame* attendant_dead = new Frame(0, 0, 64, 64, spr_attendant_dead, false, 0.2);  frames_attendant_dead.push_back(attendant_dead);
 
 		Animation* anim_attendant_up = new Animation(frames_attendant_up, false, true);
 		Animation* anim_attendant_down = new Animation(frames_attendant_down, false, true);
 		Animation* anim_attendant_left = new Animation(frames_attendant_left, false, true);
 		Animation* anim_attendant_right = new Animation(frames_attendant_right, false, true);
+		Animation* anim_attendant_dead = new Animation(frames_attendant_dead, false, true);
 
 	// Instantiate AI (equal behavior)
-		Sentry* sentry = new Sentry(2*64, 7*64, 64, 64, 5, 90, 3*64, 4);
+		Sentry* sentry = new Sentry(2*64, 7*64, 64, 64, 5, 90, 3*64, 5);
 		// add the peanut proj
 		sentry->peanut->img = spr_peanut;
 		sentry->AddAnimation(anim_attendant_up);
 		sentry->AddAnimation(anim_attendant_down);
 		sentry->AddAnimation(anim_attendant_left);
 		sentry->AddAnimation(anim_attendant_right);
+		sentry->AddAnimation(anim_attendant_dead);
+
 		// Vector path
 		vector<int*> path; path.reserve(2);
 		int point1[2] = {9, 7}; int point2[2] = {2, 7};
@@ -274,13 +317,15 @@ int main(void)
 		sentry->SetPath(path);
 
 	// Instantiate AI 2 (close range, mostly chases and shoots / runs some of the time)
-		Sentry* sentry2 = new Sentry(9 * 64, 20 * 64, 64, 64, 5, 90, 3 * 64, 4);
+		Sentry* sentry2 = new Sentry(9 * 64, 20 * 64, 64, 64, 5, 90, 3 * 64, 5);
 		// add the peanut proj
 		sentry2->peanut->img = spr_peanut;
 		sentry2->AddAnimation(anim_attendant_up);
 		sentry2->AddAnimation(anim_attendant_down);
 		sentry2->AddAnimation(anim_attendant_left);
 		sentry2->AddAnimation(anim_attendant_right);
+		sentry2->AddAnimation(anim_attendant_dead);
+
 		// Vector path
 		vector<int*> path2; path2.reserve(4);
 		int s2_p1[2] = { 9, 20 }; int s2_p2[2] = { 9, 28 };
@@ -290,13 +335,15 @@ int main(void)
 		sentry2->SetPath(path2);
 		sentry2->SetBehavior(0.75, 0.125, 0.125);
 	// Instantiate AI 3 (ranger, mostly runs and shoots)
-		Sentry* sentry3 = new Sentry(3 * 64, 31 * 64, 64, 64, 5, 90, 3 * 64, 4);
+		Sentry* sentry3 = new Sentry(3 * 64, 31 * 64, 64, 64, 5, 90, 3 * 64, 5);
 		// add the peanut proj
 		sentry3->peanut->img = spr_peanut;
 		sentry3->AddAnimation(anim_attendant_up);
 		sentry3->AddAnimation(anim_attendant_down);
 		sentry3->AddAnimation(anim_attendant_left);
 		sentry3->AddAnimation(anim_attendant_right);
+		sentry3->AddAnimation(anim_attendant_dead);
+
 		// Vector path
 		vector<int*> path3; path3.reserve(6);
 		int s3_p1[2] = { 3, 31 }; int s3_p2[2] = { 8, 31 };
@@ -312,6 +359,7 @@ int main(void)
 	physics->AddToPhysicsUpdate(sentry2);
 	physics->AddToPhysicsUpdate(sentry3);
 	physics->AddToPhysicsUpdate(decoration);
+	physics->AddToPhysicsUpdate(player->punch);
 	physics->AddToPhysicsUpdate(sentry->peanut);
 	physics->AddToPhysicsUpdate(sentry2->peanut);
 	physics->AddToPhysicsUpdate(sentry3->peanut);
@@ -323,9 +371,14 @@ int main(void)
 	camera->AddActor(sentry);
 	camera->AddActor(sentry2);
 	camera->AddActor(sentry3);
+	camera->AddProjectile(player->punch);
 	camera->AddProjectile(sentry->peanut);
 	camera->AddProjectile(sentry2->peanut);
 	camera->AddProjectile(sentry3->peanut);
+
+	bool fullscreen = false;
+	bool prevFramePunch = false;
+	int filter_y = -600, filter_y2 = 0;
 
     // The game loop.
 	kbState = SDL_GetKeyboardState(NULL);
@@ -352,10 +405,16 @@ int main(void)
             }
         }
 
-        // Game logic goes here.
+        // Exit the game with escape currently
 		if (kbState[SDL_SCANCODE_ESCAPE]) {
 			shouldExit = 1;
 		}
+		// Fullscreen
+		if (kbState[SDL_SCANCODE_F10]) {
+			if (fullscreen) { SDL_SetWindowFullscreen(window, 0);
+			} else { SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN); }
+		}
+
 		if (kbState[SDL_SCANCODE_SPACE]) {
 			printf(" (%d, %d)", player->x / 64, player->y / 64);
 			system("pause");
@@ -380,6 +439,18 @@ int main(void)
 		} else { camInput[1] = 0; }
 		camInput[0] = 0;
 
+		if (kbState[SDL_SCANCODE_F]) {
+			if (!prevFramePunch) {
+				prevFramePunch = true;
+				player->Punch();
+			}
+		} else {
+			prevFramePunch = false;
+		}
+		filter_y += 300 * deltaTime;
+		if (filter_y >= 600) filter_y = -600;
+		filter_y2 += 300 * deltaTime;
+		if (filter_y2 >= 600) filter_y2 = -600;
 		camera->Move(deltaTime, camInput);
 		player->Update(deltaTime);
 		sentry->SetTarget(player->x, player->y);
@@ -397,7 +468,10 @@ int main(void)
 		physics->DetectCollisions();
 		// Game drawing goes here.
 		camera->Draw(deltaTime);
-
+		glDrawSprite(filter_crt, 0, filter_y, 800, 600); // turn these off when the play is
+		glDrawSprite(filter_crt, 0, filter_y2, 800, 600); // turn these off when the play is
+		glDrawSprite(filter_vignette, 0, 0, 800, 600);
+		glDrawSprite(spr_gameover, 338, 262, 124, 76);
         // Present the most recent frame.
         SDL_GL_SwapWindow(window);
     }
