@@ -10,19 +10,3 @@ Overbooked is the topical game of the year!
 
 Overbooked follows a troubled passenger on an overbooked flight as he tries to
 sneak through flight attendants, militant police forces, and scorpions to get to his seat!
-
-Idea Board:
-    ○ If there is a two player mode:
-        ○   The second player could control nothing, but if the player triggers a sentry, the second player gets control of it
-            And can fight the player directly
-            [However, not sure how to make it fun when they aren't playing]
-    ○ Perhaps when they arent playing, they can spawn one hit scorpions to harass the player (they control it)?
-    
-    ○ The player needs more tools besides hitting people with his fists!
-        ○ Perhaps he can pickup sky mall magazines and throwing them will distract gaurds for a time interval
-        ○ Defnitely using peanut bags as health pickups
-    ○ Game Loop
-        ○ The gameplay is supposed to be reminiscent of Metal Gear on the NES or MSX
-        ○ In other words, they study movement patterns of the sentries and use cunning or items to win the encounter
-        ○ At the end of the level, the player should be rewarded with a passenger ticket
-        ○ Perhaps we could record the amount of time, alerts, and knockouts made during the run and give it a grade??

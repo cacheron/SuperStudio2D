@@ -27,6 +27,7 @@ Projectile::Projectile() {
 	speed = 0;
 	collision = false;
 	damage = 5;
+	dir[0] = 0; dir[1] = 0;
 }
 Projectile::Projectile(int xPos, int yPos, int w, int h, int image, int spd, int dmg, bool coll) {
 	x = xPos; x = yPos; img = image;
@@ -39,6 +40,7 @@ Projectile::Projectile(int xPos, int yPos, int w, int h, int image, int spd, int
 	speed = spd;
 	collision = false;
 	damage = dmg;
+	dir[0] = 0; dir[1] = 0;
 }
 void Projectile::Draw(int xPos, int yPos) {
 	glDrawSprite(img, xPos, yPos, width, height);
@@ -46,7 +48,11 @@ void Projectile::Draw(int xPos, int yPos) {
 void Projectile::Move(float deltaTime) {
 	x += dir[0] * deltaTime * speed;
 	y += dir[1] * deltaTime * speed;
-	if (collision) { x = -64; y = -64; } // hide the proj
+	if (collision == true) { x = -64; y = -64; } // hide the proj
+	BoxCollider->x = x; BoxCollider->y = y;
+}
+void Projectile::Move(int newX, int newY) {
+	x = newX; y = newY;
 	BoxCollider->x = x; BoxCollider->y = y;
 }
 
@@ -95,8 +101,12 @@ void Animation::Draw(float deltaTime, int xPos, int yPos, bool repeat) {
 			// switch the animation
 			currentFrame++;	elapsedTime = 0.0;
 			if (currentFrame >= frameCount) {
-				if (repeat) { currentFrame = 0; }
-				else { isFinished = true; currentFrame = frameCount-1; }
+				if (repeat) { 
+					currentFrame = 0; 
+				} else { 
+					currentFrame = frameCount-1; 
+				}
+				isFinished = true;
 			}
 		}
 	}	
@@ -161,11 +171,17 @@ void Actor::Draw(float deltaTime, int xPos, int yPos) {
 	currentAnimation->Draw(deltaTime, xPos, yPos, currentAnimation->repeat);
 }
 void Actor::TakeDamage(int dmg) {
+	if (health > 0) {
+		currentAnimation = animations.at(5);
+		currentAnimation->isFinished = false;
+		currentAnimation->elapsedTime = 0.0;
+	}
 	health -= dmg;
 }
 
 // Player Implementation
 Player::Player() {
+	hasKey = false;
 	x = 0; y = 0; img = 0;
 	width = 0; height = 0;
 	isCollidable = false;
@@ -174,8 +190,10 @@ Player::Player() {
 	punchPress = false;
 	lookDir[0] = 0; lookDir[1] = 0;
 	punch = new Projectile(-64, -64, 64, 64, 0, 0, 1, true);
+	health = 20;
 }
 Player::Player(int xPos, int yPos, int w, int h, int hp, int spd, int animCount) {
+	hasKey = false;
 	x = xPos; y = yPos; img = 0;
 	width = w;
 	height = h;
@@ -186,15 +204,16 @@ Player::Player(int xPos, int yPos, int w, int h, int hp, int spd, int animCount)
 	animations.reserve(animCount);
 	isPunching = false;
 	punchPress = false;
-	lookDir[0] = 0; lookDir[1] = 0;
+	lookDir[0] = 0; lookDir[1] = 1;
 	punch = new Projectile(-64, -64, 64, 64, 0, 0, 1, true);
+	health = 20;
 }
 void Player::Punch() {
 	if (!punchPress && !isPunching) {
 		punchPress = 1;
 		// Move the projectile to the right position
-		punch->x = lookDir[0] * 62 + x;
-		punch->y = lookDir[1] * 62 + y;
+		punch->x = lookDir[0] * 48 + x;
+		punch->y = lookDir[1] * 48 + y;
 		punch->BoxCollider->x = punch->x;
 		punch->BoxCollider->y = punch->y;
 		punch->dir[0] = 0; punch->dir[1] = 0;
@@ -206,20 +225,16 @@ void Player::Update(float deltaTime) {
 	// 5 is dead
 	// punches are 5 -> 8
 	// Up and down
-	if (health < 0) {
-		input[0] = 0; input[1] = 0;
-		// set current animation
-		currentAnimation = animations.at(4);
-	} else {
+	if (health > 0) {
 		if (punchPress) {
 			punchPress = 0;
 			isPunching = 1;
 			// set the animation
-			if (lookDir[1] > 0) { currentAnimation = animations.at(6); }
-			else if (lookDir[1] < 0) { currentAnimation = animations.at(5); }
+			if (lookDir[1] > 0) { currentAnimation = animations.at(7); }
+			else if (lookDir[1] < 0) { currentAnimation = animations.at(6); }
 			// left and right
-			if (lookDir[0] > 0) { currentAnimation = animations.at(8); }
-			else if (lookDir[0] < 0) { currentAnimation = animations.at(7); }
+			if (lookDir[0] > 0) { currentAnimation = animations.at(9); }
+			else if (lookDir[0] < 0) { currentAnimation = animations.at(8); }
 		}
 		if (isPunching && currentAnimation->isFinished) {
 			currentAnimation->elapsedTime = 0.0f;
@@ -238,6 +253,12 @@ void Player::Update(float deltaTime) {
 			else if (lookDir[0] < 0) { currentAnimation = animations.at(2); }
 		}
 		if (lookDir[0] == 0 && lookDir[1] == 0) currentAnimation = animations.at(1);
+	}
+	else {
+		printf("inside %d\n", health);
+		input[0] = 0; input[1] = 0;
+		// set current animation
+		currentAnimation = animations.at(4);
 	}
 	// Move the player
 	if (!isPunching) {
@@ -274,6 +295,7 @@ Sentry::Sentry() {
 	decision = -1.0;
 	peanut = new Projectile(-64, -64, 64, 64, 0, 180, 5, true);
 	fired = false;
+	BoxCollider = new AABB();
 }
 Sentry::Sentry(int xPos, int yPos, int w, int h, int hp, int spd, int rng, int animCount) {
 	x = xPos; y = yPos; img = 0;
@@ -366,7 +388,6 @@ void Sentry::Update(float deltaTime) {
 		UpdateAnimation(deltaTime);
 	} else {
 		// he ded
-		BoxCollider->height = 0; BoxCollider->width = 0;
 		BoxCollider->x = -128; BoxCollider->y = -128;
 		// play ded animation
 		currentAnimation = animations.at(4);
@@ -428,12 +449,47 @@ void Sentry::UpdateDecision(float deltaTime) {
 	Move(deltaTime);
 }
 void Sentry::UpdateAnimation(float deltaTime) {
-	// Up and down
-	if (input[1] > 0) { currentAnimation = animations.at(1); }
-	else if (input[1] < 0) { currentAnimation = animations.at(0); }
-	// left and right
-	if (input[0] > 0) { currentAnimation = animations.at(3); }
-	else if (input[0] < 0) { currentAnimation = animations.at(2); }
+	if (currentAnimation != animations.at(5)) {
+		if (input[1] > 0) { currentAnimation = animations.at(1); }
+		else if (input[1] < 0) { currentAnimation = animations.at(0); }
+		// left and right
+		if (input[0] > 0) { currentAnimation = animations.at(3); }
+		else if (input[0] < 0) { currentAnimation = animations.at(2); }
+	} else if (currentAnimation->isFinished) {
+		if (input[1] > 0) { currentAnimation = animations.at(1); }
+		else if (input[1] < 0) { currentAnimation = animations.at(0); }
+		// left and right
+		if (input[0] > 0) { currentAnimation = animations.at(3); }
+		else if (input[0] < 0) { currentAnimation = animations.at(2); }
+	}
+}
+void Sentry::CopyValues(Sentry* copy) {
+	x = copy->x; y = copy->y; peanut->img = copy->peanut->img; img = 0;
+	width = copy->width;
+	height = copy->height;
+	BoxCollider->x = x;
+	BoxCollider->y = y;
+	BoxCollider->width = copy->BoxCollider->width;
+	BoxCollider->height = copy->BoxCollider->height;
+	health = copy->health; speed = copy->speed;
+	input[0] = 0; input[1] = 0;
+	//animations.reserve(copy->animations.size());
+	// copy animations
+	for (int i = 0; i < copy->animations.size(); i++) {
+		AddAnimation(copy->animations[i]);
+	}
+	status = "patrol";
+	currentPoint[0] = x; currentPoint[1] = y;
+	pathIndex = 0; bool reverse = false;
+	range = copy->range;
+	target[0] = 0; target[1] = 0;
+	Behavior.CHASE = copy->Behavior.CHASE;
+	Behavior.RUN = copy->Behavior.RUN;
+	Behavior.SHOOT = copy->Behavior.SHOOT;
+	decision = -1.0;
+	peanut = new Projectile(-64, -64, 64, 64, 0, 180, 5, true);
+	fired = false;
+	path = copy->path;
 }
 
 // Background class implementation
@@ -471,7 +527,13 @@ void Background::Draw(int xPix, int yPix, int xTile, int yTile, int w, int h) {
 void Background::ReserveLevel() {
 	level.resize(width, vector<int>(height, 0));
 }
-
+void Background::SetTileSet(vector<Tile*> tiles) {
+	tileSet.clear();
+	tileSet.reserve(tiles.size());
+	for (int i = 0; i < tiles.size(); i++) {
+		tileSet.push_back(tiles[i]);
+	}
+}
 // Camera class implementation
 Camera::Camera() {
 	x = 0; y = 0; width = 0; height = 0; speed = 0;
@@ -505,15 +567,22 @@ void Camera::Move(float deltaTime, int direction[2]) {
 	x += direction[0] * deltaTime * speed;
 	y += direction[1] * deltaTime * speed;
 	if (x < 0) x = 0; if (y < 0) y = 0;
-	if (y / 64 >= 30) y = 30 * 64;
+	if ((y / 64) * 2 >= bg->height + height - 2) {
+		y = (bg->height + height - 1) * 32;
+	}
 	BoxCollider.Move(x, y); // update the box collider
 	GetTileIndex(); // update tile index
 }
-void Camera::AddBackground(Background& level) {
-	bg = &level;
+void Camera::Move(int newX, int newY) {
+	x = newX; y = newY;
+	BoxCollider.Move(x, y); // update the box collider
+	GetTileIndex(); // update tile index
 }
-void Camera::AddDecoration(Background& level) {
-	decoration = &level;
+void Camera::SetBackground(Background* level) {
+	bg = level;
+}
+void Camera::SetDecoration(Background* level) {
+	decoration = level;
 }
 void Camera::AddActor(Actor* actor) {
 	actors.push_back(actor);
@@ -524,4 +593,8 @@ void Camera::AddProjectile(Projectile* proj) {
 void Camera::GetTileIndex() {
 	xTile = x / 64;
 	yTile = y / 64;
+}
+void Camera::ClearScreen() {
+	actors.clear();
+	projectiles.clear();
 }

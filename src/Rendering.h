@@ -31,6 +31,7 @@ public:
 	Projectile(int xPos, int yPos, int w, int h, int img, int spd, int dmg, bool collision);
 	void Draw(int x, int y);
 	void Move(float deltaTime);
+	void Move(int x, int y);
 };
 
 /** A Frame class is a Tile with a duration */
@@ -78,6 +79,7 @@ protected:
 
 class Player : public Actor {
 public:
+	bool hasKey;
 	Player();
 	Player(int xPos, int yPos, int w, int h, int hp, int spd, int animCount);
 	Projectile* punch;
@@ -101,6 +103,7 @@ public:
 	void SetTarget(int x, int y);
 	void SetBehavior(float chase, float run, float shoot);
 	void SetIMG(int img);
+	void CopyValues(Sentry* copy); // Copy all values from one sentry into this sentry
 private:
 	// pathing vairables
 	int currentPoint[2]; int target[2];
@@ -127,6 +130,7 @@ public:
 	void AddToTileSet(Tile* tile);
 	Tile* GetTile(int x, int y);
 	void SetLevel(vector< vector<int> >& newLevel);
+	void SetTileSet(vector<Tile*> tiles);
 	void Draw(int xPix, int yPix, int xTile, int yTile, int w, int h);
 private:
 	vector<Tile*> tileSet;
@@ -146,10 +150,12 @@ public:
 	Camera(int xPos, int yPos, int w, int h, int spd);
 	void Draw(float deltaTime);
 	void Move(float deltaTime, int direction[2]);
-	void AddBackground(Background& level); // Adds the background to the camera
-	void AddDecoration(Background& level); // Adds the decorations to the camera
+	void Move(int newX, int newY);
+	void SetBackground(Background* level); // Adds the background to the camera
+	void SetDecoration(Background* level); // Adds the decorations to the camera
 	void AddActor(Actor* actor);
 	void AddProjectile(Projectile* proj);
+	void ClearScreen();
 private:
 	int xTile, yTile;
 	Background* bg;
